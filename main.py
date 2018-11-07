@@ -3,18 +3,18 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame, Series
 
-data = pd.read_csv('./data/uji/trainingData.csv')
+data = pd.read_csv('./data/sim/msrs.csv')
 
 # settings
 building = 0
 floor = 0
-apcount = 520
+apcount = 20
 
 powRange = [-50, -10]
 losRange = [1.5, 6]
 lonRange = []
 latRange = []
-spcOffset = 30
+spcOffset = 10
 
 # preprocess
 fdata = data[(data.BUILDINGID == building) & (data.FLOOR == floor)]
@@ -32,9 +32,6 @@ lonRange[1] = max(fdata.LONGITUDE) + spcOffset
 latRange[0] = min(fdata.LATITUDE) - spcOffset
 latRange[1] = max(fdata.LATITUDE) + spcOffset
 
-print(lonRange)
-print(latRange)
-
 # solve method
 
 
@@ -47,8 +44,11 @@ def exhaustiveMethod(msrs):
     count = len(msrs)
 
     for po in range(powRange[0], powRange[1]):
+        print(po)
         for los in np.arange(losRange[0], losRange[1], step=0.1):
+            print(str(po) + ', ' + str(los))
             for lat in np.arange(latRange[0], latRange[1], 1):
+                print(str(po) + ', ' + str(los) + ', ' + str(lat))
                 for lon in np.arange(lonRange[0], lonRange[1], 1):
                     res = 0
                     minErr = -1
@@ -61,6 +61,7 @@ def exhaustiveMethod(msrs):
     return presult
 
 
+
 # generate AP set
 apset = {}
 
@@ -69,9 +70,12 @@ for index in range(1, apcount+1):
     msrs = fdata[fdata[key] < 0][[key, 'LATITUDE', 'LONGITUDE']]
     if len(msrs) == 0:
         continue
-    print('------Calculate Ap ' + key + '------')
+    print('------Calculate Ap ' + key + '------' + str(len(msrs)))
     apparam = exhaustiveMethod(msrs)
     print(apparam)
     apset[key] = apparam
 
 print(apset)
+apdf = pd.DataFrame(apset)
+apdf.to_csv('./data/sim/res.csv')
+
