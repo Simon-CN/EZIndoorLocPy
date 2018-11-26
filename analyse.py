@@ -20,4 +20,5 @@ for index, row in data.iterrows():
             app = aps.iloc[ap]
             dis = np.power(10, (app['pow'] - rssi) / (10 * app.los))
             locin.append([dis, app.lat, app.lon])
-    locres.append(li.execLoc(locin))
+
+plt.show()

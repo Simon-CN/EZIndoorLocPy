@@ -44,11 +44,8 @@ def exhaustiveMethod(msrs):
     count = len(msrs)
 
     for po in range(powRange[0], powRange[1]):
-        print(po)
         for los in np.arange(losRange[0], losRange[1], step=0.1):
-            print(str(po) + ', ' + str(los))
             for lat in np.arange(latRange[0], latRange[1], 1):
-                print(str(po) + ', ' + str(los) + ', ' + str(lat))
                 for lon in np.arange(lonRange[0], lonRange[1], 1):
                     res = 0
                     minErr = -1
