@@ -4,7 +4,7 @@ import matplotlib.pyplot
 import numpy as np
 import numpy.matlib
 import pandas as pd
-import progressbar
+from progressbar import *
 
 import settings as st
 
