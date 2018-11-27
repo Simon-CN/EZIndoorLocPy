@@ -4,6 +4,7 @@ import matplotlib.pyplot
 import numpy as np
 import numpy.matlib
 import pandas as pd
+import progressbar
 
 import settings as st
 
@@ -19,29 +20,33 @@ def getCommonMsr(msrs1, msrs2):
 
 def isProximate(msrs1, msrs2):
     common = getCommonMsr(msrs1, msrs2)
-    if (len(common == 0)):
+    if (len(common) == 0):
         return False
-    diff = 0
     cm1 = (np.asarray(msrs1))[common]
     cm2 = (np.asarray(msrs2))[common]
     tmp = cm1[0]
     cm1 -= tmp
     tmp = cm2[0]
     cm2 -= tmp
-    for i in common:
-        diff += cm1[i] - cm2[i]
-    diff /= len(common)
+    diff = abs(sum(cm1-cm2))
 
-    return abs(diff) <= st.PROXIMATE_THRESHOLD
+    return diff <= st.PROXIMATE_THRESHOLD
 
 
 def calculateGResult(dev1, dev2, proPair):
+    print("calculateGResult...")
     count = 0
     deltaG = 0
     sigmaG = 0
 
+    pb = ProgressBar().start()
+    ct = 0
+    tot = len(proPair) * 2
+
     # Calculate DelatG
     for pair in proPair:
+        ct += 1
+        pb.update(ct/tot*100)
         msrs1 = dev1[pair[0]]
         msrs2 = dev2[pair[1]]
         common = getCommonMsr(msrs1, msrs2)
@@ -54,6 +59,8 @@ def calculateGResult(dev1, dev2, proPair):
 
     # Calculate SigmaG
     for pair in proPair:
+        ct += 1
+        pb.update(ct/tot*100)
         msrs1 = dev1[pair[0]]
         msrs2 = dev2[pair[1]]
         common = getCommonMsr(msrs1, msrs2)
@@ -62,31 +69,50 @@ def calculateGResult(dev1, dev2, proPair):
             sigmaG += (msrs1[cm] - msrs2[cm] - deltaG) ** 2
 
     sigmaG = mt.sqrt(sigmaG) / count
-
+    pb.finish()
     return [deltaG, sigmaG]
 
 
 def calculateGain(dev1, dev2):
+    print("estimate proximate pair...")
     proximatePair = []
 
-    for i in range(0, len(dev1)):
-        for j in range(0, len(dev2)):
+    pb = ProgressBar().start()
+    count = 0
+    im = len(dev1)
+    jm = len(dev2)
+    tot = im * jm
+    for i in range(0, im):
+        for j in range(0, jm):
+            count += 1
+            pb.update(count / tot * 100)
             if isProximate(dev1[i], dev2[j]):
-                proximatePair.append(i, j)
+                proximatePair.append([i, j])
+
+    pb.finish()
 
     if (len(proximatePair) == 0):
+        print("no proximate pair")
         return [0, 0, 0]
 
     res = calculateGResult(dev1, dev2, proximatePair)
-    return [len(proximatePair), res[0], res[1]]
+    vl = [len(proximatePair), res[0], res[1]]
+    print(vl)
+    return vl
 
 
+# Enter
 srcData = pd.read_csv('./data/uji/trainingData.csv')
 
 data = srcData.values
 
 divMsrs = []
 ids = list(set(srcData['PHONEID']))
+
+print("Device List: ")
+print(ids)
+print("Count %d" % len(ids))
+
 for id in ids:
     divMsrs.append(srcData[srcData['PHONEID'] == id])
 
@@ -94,7 +120,8 @@ gainMatrix = []
 
 for i in range(0, len(divMsrs) - 1):
     for j in range(i + 1, len(divMsrs)):
-        gain = calculateGain(divMsrs[i], divMsrs[j])
+        print("device %d <> device %d start..." % (i, j))
+        gain = calculateGain(divMsrs[i].values, divMsrs[j].values)
         if (gain[0] == 0):
             continue
         gainMatrix.append([i, j, gain[1], gain[2]])
@@ -104,6 +131,8 @@ row = len(gainMatrix)
 col = len(ids)
 
 gm = np.asmatrix(gainMatrix)
+
+np.savetxt('./data/uji/deviceDiff.txt', gm)
 
 # Ax=B  WAx=WB  (WA)t(WA)x=(WA)tWB  x=((WA)t(WA))-1(WA)tWB
 A = np.matlib.zeros((row, col), int)
@@ -115,7 +144,7 @@ for i in range(0, len(gainMatrix)):
     A[i][pair[0]] = 1
     A[i][pair[1]] = -1
     W[i][i] = pair[3]
-    
+
 WA = W * A
 WAt = WA.T
 WAtWA = WAt * WA
@@ -123,3 +152,4 @@ WAtWAI = WAtWA.I
 
 x = WAtWAI * WAt * W * B
 
+print(x)
