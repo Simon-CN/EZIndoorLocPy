@@ -1,5 +1,6 @@
 import math as mt
-
+import random
+import os
 import matplotlib.pyplot
 import numpy as np
 import numpy.matlib
@@ -104,17 +105,18 @@ def calculateGain(dev1, dev2):
 # Enter
 srcData = pd.read_csv('./data/uji/trainingData.csv')
 
-data = srcData.values
-
+mdata = srcData[(srcData.BUILDINGID == st.BUILDINGID)
+                & (srcData.FLOOR == st.FLOORID)]
+data = mdata.values
 divMsrs = []
-ids = list(set(srcData['PHONEID']))
+ids = list(set(mdata.PHONEID))
 
 print("Device List: ")
 print(ids)
 print("Count %d" % len(ids))
 
 for id in ids:
-    divMsrs.append(srcData[srcData['PHONEID'] == id])
+    divMsrs.append(mdata[mdata.PHONEID == id])
 
 gainMatrix = []
 
@@ -127,23 +129,35 @@ for i in range(0, len(divMsrs) - 1):
         gainMatrix.append([i, j, gain[1], gain[2]])
 
 # Weighted least mean square sense
-row = len(gainMatrix)
+row = len(gainMatrix)+1
 col = len(ids)
 
 gm = np.asmatrix(gainMatrix)
+path = './data/uji/deviceDiff%d_%d.txt' % (st.BUILDINGID, st.FLOORID)
+if os.path.exists(path):
+    os.remove(path)
+np.savetxt(path, gm)
 
-np.savetxt('./data/uji/deviceDiff.txt', gm)
 
 # Ax=B  WAx=WB  (WA)t(WA)x=(WA)tWB  x=((WA)t(WA))-1(WA)tWB
-A = np.matlib.zeros((row, col), int)
-B = np.matrix(gm[:, 2])
-W = np.matlib.zeros((row, row))
+A = np.matlib.zeros((row, col), int).tolist()
+B = np.matrix(gm[:, 2]).tolist()
+W = np.matlib.zeros((row, row)).tolist()
+
+# Random pick G0
+A[row - 1][0] = 1
+B.append([random.randint(st.MIN_GAIN_DIFF, st.MAX_GAIN_DIFF)])
+W[row - 1][row - 1] = 1
 
 for i in range(0, len(gainMatrix)):
     pair = gainMatrix[i]
     A[i][pair[0]] = 1
     A[i][pair[1]] = -1
     W[i][i] = pair[3]
+
+A = np.asmatrix(A)
+B = np.asmatrix(B)
+W = np.asmatrix(W)
 
 WA = W * A
 WAt = WA.T
