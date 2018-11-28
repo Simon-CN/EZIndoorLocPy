@@ -1,12 +1,11 @@
 import math as mt
-import random
 import os
+import random
 import matplotlib.pyplot
 import numpy as np
 import numpy.matlib
 import pandas as pd
 from progressbar import *
-
 import settings as st
 
 
@@ -15,7 +14,6 @@ def getCommonMsr(msrs1, msrs2):
     for i in range(0, st.AP_COUNT):
         if msrs1[i] != 100 and msrs2[i] != 100:
             commonIndex.append(i)
-
     return commonIndex
 
 
@@ -30,7 +28,6 @@ def isProximate(msrs1, msrs2):
     tmp = cm2[0]
     cm2 -= tmp
     diff = abs(sum(cm1-cm2))
-
     return diff <= st.PROXIMATE_THRESHOLD
 
 
@@ -39,11 +36,9 @@ def calculateGResult(dev1, dev2, proPair):
     count = 0
     deltaG = 0
     sigmaG = 0
-
     pb = ProgressBar().start()
     ct = 0
     tot = len(proPair) * 2
-
     # Calculate DelatG
     for pair in proPair:
         ct += 1
@@ -52,12 +47,9 @@ def calculateGResult(dev1, dev2, proPair):
         msrs2 = dev2[pair[1]]
         common = getCommonMsr(msrs1, msrs2)
         count += len(common)
-
         for cm in common:
             deltaG += msrs1[cm] - msrs2[cm]
-
     deltaG /= count
-
     # Calculate SigmaG
     for pair in proPair:
         ct += 1
@@ -65,10 +57,8 @@ def calculateGResult(dev1, dev2, proPair):
         msrs1 = dev1[pair[0]]
         msrs2 = dev2[pair[1]]
         common = getCommonMsr(msrs1, msrs2)
-
         for cm in common:
             sigmaG += (msrs1[cm] - msrs2[cm] - deltaG) ** 2
-
     sigmaG = mt.sqrt(sigmaG) / count
     pb.finish()
     return [deltaG, sigmaG]
@@ -77,7 +67,6 @@ def calculateGResult(dev1, dev2, proPair):
 def calculateGain(dev1, dev2):
     print("estimate proximate pair...")
     proximatePair = []
-
     pb = ProgressBar().start()
     count = 0
     im = len(dev1)
@@ -89,13 +78,10 @@ def calculateGain(dev1, dev2):
             pb.update(count / tot * 100)
             if isProximate(dev1[i], dev2[j]):
                 proximatePair.append([i, j])
-
     pb.finish()
-
     if (len(proximatePair) == 0):
         print("no proximate pair")
         return [0, 0, 0]
-
     res = calculateGResult(dev1, dev2, proximatePair)
     vl = [len(proximatePair), res[0], res[1]]
     print(vl)
@@ -166,4 +152,6 @@ WAtWAI = WAtWA.I
 
 x = WAtWAI * WAt * W * B
 
-print(x)
+ref = A * x
+
+print(sum(abs(ref - B)) / row)
