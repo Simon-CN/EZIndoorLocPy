@@ -1,3 +1,4 @@
+# %%
 from functools import cmp_to_key
 
 import matplotlib.pyplot as plt
@@ -7,12 +8,10 @@ import scipy.cluster.hierarchy as hcluster
 
 import settings as st
 
-
 def calculateDistance(a, b):
     l = len(a)
     count = 0
     sm = 0
-
     for i in range(0, l):
         if a[i] == 1 and b[i] == 1:
             continue
@@ -90,16 +89,10 @@ def selectAPs(srcData):
     print('Select AP...')
     selectIndex = []
     for apidxs in cluDic.items():
-        if len(apidxs) == 1:
+        if len(apidxs[1]) == 1:
             selectIndex.append(apidxs[0])
         else:
-            selectIndex.append(doSelect(apidxs, data))
+            selectIndex.append(doSelect(apidxs[1], data))
     print(selectIndex)
     return selectIndex
 
-
-srcData = pd.read_csv(st.TRAIDATA_PATH)
-data = srcData[(srcData.BUILDINGID == st.BUILDINGID)
-               & (srcData.FLOOR == st.FLOORID)]
-
-res = selectAPs(data)
