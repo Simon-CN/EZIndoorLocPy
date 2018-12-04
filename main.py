@@ -1,16 +1,24 @@
-import pandas as pd
+# %%
 import numpy as np
-import settings as st
-import devicediff as dif
-import apselect as aps
+import pandas as pd
 
-# ReadData
+import apselect as aps
+import devicediff as dif
+import locselect as locs
+import settings as st
+
+# %% ReadData
 srcData = pd.read_csv(st.TRAIDATA_PATH)
 data = srcData[(srcData.BUILDINGID == st.BUILDINGID)
-                & (srcData.FLOOR == st.FLOORID)]
+               & (srcData.FLOOR == st.FLOORID)]
 
-# Calculate Device Difference
+# %% Calculate Device Difference
 devdiff = dif.calculateDeviceDiff(data)
 
-#Select APs
+# %% Simplify Data Set
 selectedAP = aps.selectAPs(data)
+selectedLoc = locs.selectLocs(data)
+sData = data.values[selectedLoc, selectedAP]
+msrInfo = data.values[selectedLoc, st.LONGITUDE_INDEX: st.TIMESTAMP_INDEX]
+
+# %% Solve LDPL

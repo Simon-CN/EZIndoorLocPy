@@ -1,4 +1,3 @@
-#%%
 import random
 from functools import cmp_to_key
 
@@ -8,15 +7,6 @@ import pandas as pd
 import scipy.cluster.hierarchy as hie
 
 import settings as st
-
-
-def randomcolor():
-    colorArr = ['1', '2', '3', '4', '5', '6', '7',
-                '8', '9', 'A', 'B', 'C', 'D', 'E', 'F']
-    color = ""
-    for i in range(6):
-        color += colorArr[random.randint(0, 14)]
-    return "#"+color
 
 
 def calculateSimilarity(a, b):
@@ -74,7 +64,7 @@ def doSelect(seq, data):
             tot += calculateSimilarity(data[i], data[oth])
         if tot > maxsm:
             maxsm = tot
-            selectIdx = maxsm
+            selectIdx = i
     return selectIdx
 
 
@@ -98,9 +88,8 @@ def selectLocs(srcData):
 
     return res
 
-#%%
-srcData = pd.read_csv(st.TRAIDATA_PATH)
-srcData = srcData[(srcData.BUILDINGID == st.BUILDINGID)
-                  & (srcData.FLOOR == st.FLOORID)]
+# srcData = pd.read_csv(st.TRAIDATA_PATH)
+# data = srcData[(srcData.BUILDINGID == st.BUILDINGID)
+#                & (srcData.FLOOR == st.FLOORID)]
 
-res = selectLocs(srcData)
+# res = selectLocs(data)
