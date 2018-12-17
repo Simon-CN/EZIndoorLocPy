@@ -1,14 +1,108 @@
 import numpy as np
 import random
 import settings as st
+import matplotlib.pyplot as plt
+import sys
+import math
+from scipy.optimize import leastsq
 
 
-def randomInit(idx, seq, apParam):
+def solveLocation(seq):
+    level = len(seq)
+    if level == 1:
+        theta = random.randint(0, 360)
+        return [seq[1] + seq[0] * np.cos(math.radians(theta)), seq[2] + seq[0] * np.sin(math.radians(theta))]
+
+    A = []
+    B = []
+    line1 = seq[0]
+    for i in range(1, level):
+        A.append([line1[1] - seq[i][1], line1[2] - seq[i][2]])
+        B.append(0.5*(line1[0]**2-seq[i][0]**2+line1[1]**2-seq[i][1]**2 +
+                      line1[2]**2-seq[i][2]**2))
+    A = np.asmatrix(A)
+    B = np.asmatrix(B)
+    AT = A.T
+    ATA = AT * A
+    ATA1 = ATA.I
+    return ATA1 * AT * B
+
+
+def calculateError(seq, p0, gamma, loc):
+    totalErr = 0
+    for line in seq:
+        totalErr += abs(line[0] - p0 + 10 * gamma * np.log10(np.sqrt((loc[0]-line[1])**2+(loc[1]-line[2])**2
+                                                                     )))
+    return totalErr/len(seq)
+
+
+def getDistanceSeq(seq, p0, gamma):
+    dis = []
+    for ms in seq:
+        dis.append(
+            [np.power(10, (p0 - ms[0]) / 10 * gamma), ms[1], ms[2]])
+
+    return dis
+
+
+def solveLoop(seq, p0, gamma, res):
+    loc = solveLocation(getDistanceSeq(seq, p0, gamma))
+    err = calculateError(seq, p0, gamma, loc)
+    if err < res[4]:
+        res[0] = p0
+        res[1] = gamma
+        res[2] = loc[0]
+        res[3] = loc[1]
+        res[4] = err
+
     return
 
 
-def trilaterate(idx, apParam, msrs, locations):
-    return
+def solveStrategyR12(seq):
+    res = [100, 0, 0, 0, sys.maxsize]
+    for p0 in range(st.POWER_MIN, st.POWER_MAX, st.POWER_SEARCH_STEP):
+        for gamma in range(st.GAMMA_MIN, st.GAMMA_MAX, st.GAMMA_SEARCH_STEP):
+            solveLoop(seq, p0, gamma, res)
+
+    return res
+
+
+def solveStrategyR3(seq):
+    res = [100, 0, 0, 0, sys.maxsize]
+    p0 = random.randint(st.POWER_MIN, st.POWER_MAX)
+    for gamma in range(st.GAMMA_MIN, st.GAMMA_MAX, st.GAMMA_SEARCH_STEP):
+        solveLoop(seq, p0, gamma, res)
+
+    return res
+
+
+def solveStartegyR45(seq):
+    res = [100, 0, 0, 0, sys.maxsize]
+    p0 = random.randint(st.POWER_MIN, st.POWER_MAX)
+    gamma = random.uniform(st.GAMMA_MIN, st.GAMMA_MAX)
+    solveLoop(seq, p0, gamma, res)
+    return res
+
+
+def randomInit(seq):
+    level = len(seq)
+    if level > 3:
+        return solveStrategyR12(seq)
+    elif level == 3:
+        return solveStrategyR3(seq)
+    else:
+        return solveStartegyR45(seq)
+    return []
+
+
+def trilaterate(apParam, msrs):
+    dSeq = []
+    for msr in msrs:
+        param = apParam[msr[0]]
+        dis = np.power(10, (param[0] - msr[1]) / (10 * param[1]))
+        dSeq.append([dis, param[2], param[3]])
+    
+    return solveLocation(dSeq)
 
 
 devdf = np.loadtxt('./data/uji/midfile/devicediff_0_0.txt')
@@ -44,7 +138,7 @@ while level > 0:
         msrSeq = msrSeq[msrSeq[:, i] != 100]
         if len(msrSeq) < level:
             continue
-        randomInit(i, msrSeq[:, (i, -9, -8)], apParam)
+        apParam[i] = randomInit(msrSeq[:, (i, -9, -8)])
         knownApSet.add(i)
         unknownApSet.remove(i)
         changed = True
@@ -65,6 +159,6 @@ while level > 0:
 
         if len(msr) < 3:
             continue
-        trilaterate(j, apParam, msr, locations)
+        locations[j] = trilaterate(apParam, msr)
         knownLocSet.add(j)
         unknownLocSet.remove(j)
