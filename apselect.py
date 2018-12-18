@@ -1,4 +1,3 @@
-# %%
 from functools import cmp_to_key
 
 import matplotlib.pyplot as plt
@@ -7,6 +6,7 @@ import pandas as pd
 import scipy.cluster.hierarchy as hcluster
 
 import settings as st
+
 
 def calculateDistance(a, b):
     l = len(a)
@@ -20,15 +20,13 @@ def calculateDistance(a, b):
 
     if count == 0:
         return 1
-    return 1 - sm / count
+    return sm / count
 
 
 def doCluster(tdata):
     dis = hcluster.distance.pdist(tdata, metric=calculateDistance)
     Z = hcluster.linkage(dis, method='average')
-    res = hcluster.fcluster(Z, 0.9)
-    print("cluster result: ")
-    print(res)
+    res = hcluster.fcluster(Z, st.AP_CLU_THRESHOLD)
 
     return res
 
@@ -65,7 +63,6 @@ def doSelect(idxs, data):
 
 def selectAPs(srcData):
     # Normalize RSSI
-    print('Normalize Src Data...')
     data = srcData.values[:, 0: st.AP_COUNT]
     data = abs(data)
     data[data > st.RSSI_THRESHOLD] = st.RSSI_THRESHOLD
@@ -73,7 +70,6 @@ def selectAPs(srcData):
     tdata = np.asmatrix(data).T
 
     # Cluster
-    print('Start Cluster...')
     cluRes = doCluster(tdata)
     cluDic = {}
     for i, val in enumerate(cluRes):
@@ -81,18 +77,29 @@ def selectAPs(srcData):
             cluDic[val].append(i)
         else:
             cluDic[val] = [i]
-    print('Cluster Finished...')
-    print(cluDic)
-    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
 
     # Select AP
-    print('Select AP...')
     selectIndex = []
     for apidxs in cluDic.items():
         if len(apidxs[1]) == 1:
             selectIndex.append(apidxs[0])
         else:
             selectIndex.append(doSelect(apidxs[1], data))
-    print(selectIndex)
     return selectIndex
 
+
+# srcData = pd.read_csv(st.TRAIDATA_PATH)
+# srcData = srcData[(srcData.BUILDINGID == st.BUILDINGID)
+#                   & (srcData.FLOOR == st.FLOORID)]
+# data = srcData.values[:, 0: st.AP_COUNT]
+# data = abs(data)
+# data[data > st.RSSI_THRESHOLD] = st.RSSI_THRESHOLD
+# data /= st.RSSI_THRESHOLD
+# tdata = np.asmatrix(data).T
+
+# dis = hcluster.distance.pdist(tdata, metric=calculateDistance)
+# Z = hcluster.linkage(dis, method='average')
+
+# hcluster.dendrogram(Z, color_threshold=0.1)
+
+# res = hcluster.fcluster(Z, st.AP_CLU_THRESHOLD)

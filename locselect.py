@@ -29,13 +29,14 @@ def calculateSimilarity(a, b):
     avg = tot / count
     if avg > 1:
         avg = 1
-    return 1 - avg
+    return avg
 
 
 def doCluster(data):
     sim = hie.distance.pdist(data, metric=calculateSimilarity)
     Z = hie.linkage(sim, method='average')
-    res = hie.fcluster(Z, 0.9)
+    hie.dendrogram(Z, color_threshold=0.9)
+    res = hie.fcluster(Z, st.LOC_CLU_THRESHOLD)
 
     return res
 
@@ -89,7 +90,20 @@ def selectLocs(srcData):
     return res
 
 # srcData = pd.read_csv(st.TRAIDATA_PATH)
-# data = srcData[(srcData.BUILDINGID == st.BUILDINGID)
+# srcData = srcData[(srcData.BUILDINGID == st.BUILDINGID)
 #                & (srcData.FLOOR == st.FLOORID)]
+# data = srcData.values[:, 0: st.AP_COUNT]
+# data = abs(data)
+# data[data > st.RSSI_THRESHOLD] = st.RSSI_THRESHOLD
+# data /= st.RSSI_THRESHOLD
+
+# sim = hie.distance.pdist(data, metric=calculateSimilarity)
+# Z = hie.linkage(sim, method='average')
+# res = hie.fcluster(Z, st.LOC_CLU_THRESHOLD)
+
+# hie.dendrogram(Z, color_threshold=0.1)
+# plt.show()
+# res = hie.fcluster(Z, 0.1)
+
 
 # res = selectLocs(data)
