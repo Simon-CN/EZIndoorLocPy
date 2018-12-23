@@ -125,10 +125,6 @@ def calculateDeviceDiff(mdata):
     col = len(ids)
 
     gm = np.asmatrix(gainMatrix)
-    # path = './data/uji/deviceDiff%d_%d.txt' % (st.BUILDINGID, st.FLOORID)
-    # if os.path.exists(path):
-    #     os.remove(path)
-    # np.savetxt(path, gm)
 
     # Ax=B  WAx=WB  (WA)t(WA)x=(WA)tWB  x=((WA)t(WA))-1(WA)tWB
     A = np.matlib.zeros((row, col), int).tolist()

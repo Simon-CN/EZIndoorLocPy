@@ -1,11 +1,14 @@
 # %%
-import numpy as np
-import random
-import settings as st
-import matplotlib.pyplot as plt
-import sys
 import math
+import random
+import sys
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 from scipy.optimize import leastsq
+
+import settings as st
 
 # %%
 
@@ -14,7 +17,8 @@ def solveLocation(seq):
     level = len(seq)
     if level == 1:
         theta = random.randint(0, 360)
-        return [seq[1] + seq[0] * np.cos(math.radians(theta)), seq[2] + seq[0] * np.sin(math.radians(theta))]
+        line = seq[0]
+        return [line[1] + line[0] * np.cos(math.radians(theta)), line[2] + line[0] * np.sin(math.radians(theta))]
 
     A = []
     B = []
@@ -131,8 +135,29 @@ apCount = col - 9
 
 for line in msrs:
     for i in range(0, apCount):
-        if line[i] != 100:
+        if line[i] != st.DEFAULT_RSSI:
             line[i] += devdir[line[-2]]
+            if line[i] < st.MIN_VALID_RSSI:
+                line[i] = st.DEFAULT_RSSI
+
+del_col = []
+del_row = []
+
+for i in range(0, row):
+    line = msrs[i, 0:apCount]
+    if len(line[line != st.DEFAULT_RSSI]) == 0:
+        del_row.append(i)
+
+for j in range(0, apCount):
+    col = msrs[:, j]
+    if len(col[col != st.DEFAULT_RSSI]) == 0:
+        del_col.append(j)
+
+msrs = np.delete(msrs, del_row, 0)
+msrs = np.delete(msrs, del_col, 1)
+row, col = msrs.shape
+apCount = col - 9
+
 
 knownLoc = random.sample(range(0, row), (int)(row * st.KNOWN_LOC_PERCENT))
 knownLocSet = set(knownLoc)
