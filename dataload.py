@@ -3,10 +3,11 @@ import pandas as pd
 
 import settings as st
 
+
 def loadData():
     srcData = pd.read_csv(st.TRAIDATA_PATH)
     data = srcData[(srcData.BUILDINGID == st.BUILDINGID)
-                & (srcData.FLOOR == st.FLOORID)]
+                   & (srcData.FLOOR == st.FLOORID)]
 
     row, col = data.shape
     apCount = col - 9
@@ -37,8 +38,11 @@ def loadData():
 
     min_long = min(vdata[:, -9])
     min_lat = min(vdata[:, -8])
-    vdata[:, -9] -= min_long - st.POSITION_OFFSET
-    vdata[:, -8] -= min_lat - st.POSITION_OFFSET
+    max_long = max(vdata[:, -9])
+    max_lat = max(vdata[:, -8])
+
+    vdata[:, -9] -= min_long
+    vdata[:, -8] -= min_lat
 
     datadf = pd.DataFrame(vdata)
     cols = {st.AP_COUNT: 'LONGITUDE', st.AP_COUNT+1: 'LATITUDE', st.AP_COUNT+2: 'FLOOR', st.AP_COUNT+3: 'BUILDINGID', st.AP_COUNT+4: 'SPACEID',

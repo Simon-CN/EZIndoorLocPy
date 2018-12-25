@@ -1,4 +1,3 @@
-# %%
 import math
 import random
 import sys
@@ -10,8 +9,6 @@ from scipy.optimize import leastsq
 import scipy.cluster.hierarchy as hie
 
 import settings as st
-
-# %%
 
 
 def solveLocation(seq):
@@ -36,8 +33,6 @@ def solveLocation(seq):
     ATA1 = ATA.I
     return (ATA1 * AT * B).T.tolist()[0]
 
-# %%
-
 
 def calculateError(seq, p0, gamma, loc):
     totalErr = 0
@@ -55,12 +50,14 @@ def getDistanceSeq(seq, p0, gamma):
 
     return dis
 
-def drawCircles(r,x,y):
+
+def drawCircles(r, x, y):
     theta = np.arange(0, 2 * np.pi, 0.01)
     sx = x + r * np.cos(theta)
     sy = y + r * np.sin(theta)
     plt.plot(sx, sy)
     return
+
 
 def solveLoop(seq, p0, gamma, res):
     try:
@@ -70,6 +67,8 @@ def solveLoop(seq, p0, gamma, res):
         #     drawCircles(line[0], line[1], line[2])
         # plt.show()
         loc = solveLocation(disSeq)
+        if loc[0] < st.SPACE_RANGE[0] or loc[0] > st.SPACE_RANGE[2] or loc[1] > st.SPACE_RANGE[1] or loc[1] < st.SPACE_RANGE[3]:
+            return
         err = calculateError(seq, p0, gamma, loc)
         # print("p0: %d, gamma: %f, err: %f" % (p0, gamma, err))
         if err < res[4]:
@@ -79,12 +78,7 @@ def solveLoop(seq, p0, gamma, res):
             res[3] = loc[1]
             res[4] = err
     except Exception as e:
-        print('VVVVVVVVVVVVVVVVVVVVVVV')
-        print(seq)
-        print("p0 = %d" % p0)
-        print("gamma = %f" % gamma)
         print(e)
-        print('^^^^^^^^^^^^^^^^^^^^^^^')
     return
 
 
@@ -123,8 +117,6 @@ def randomInit(seq):
         return solveStartegyR45(seq)
     return []
 
-# %%
-
 
 def positionFilter(seq):
     position = seq[:, (1, 2)]
@@ -148,95 +140,101 @@ def positionFilter(seq):
     return filMsrs
 
 
-# %%
-devdf = np.loadtxt('./data/uji/midfile/devicediff_0_0.txt')
-msrs = np.loadtxt('./data/uji/midfile/simpledata_0_0.txt')
+def ERSGA(msrs, knownLoc, devdf):
+    st.SPACE_RANGE = [min(msrs[:, -9] - st.POSITION_OFFSET), max(msrs[:, -8]) + st.POSITION_OFFSET,
+                  max(msrs[:, -9]) + st.POSITION_OFFSET, min(msrs[:, -8]) - st.POSITION_OFFSET]
+    devdir = {}
+    for devl in devdf:
+        devdir[devl[0]] = devl[1]
+    row, col = msrs.shape
+    apCount = col - 9
 
-devdir = {}
-for devl in devdf:
-    devdir[devl[0]] = devl[1]
+    # knownLoc = random.sample(range(0, row), (int)(row * st.KNOWN_LOC_PERCENT))
+    knownLocSet = set(knownLoc)
+    unknownLocSet = set(range(0, row)).difference(knownLocSet)
 
-row, col = msrs.shape
-apCount = col - 9
+    knownApSet = set()
+    unknownApSet = set(range(0, apCount)).difference(knownApSet)
 
-knownLoc = random.sample(range(0, row), (int)(row * st.KNOWN_LOC_PERCENT))
-knownLocSet = set(knownLoc)
-unknownLocSet = set(range(0, row)).difference(knownLocSet)
+    apParam = {}
+    locations = {}
 
-knownApSet = set()
-unknownApSet = set(range(0, apCount)).difference(knownApSet)
+    for poi in knownLoc:
+        locations[poi] = msrs[poi, (-9, -8)].tolist()
 
-apParam = {}
-locations = {}
+    level = 5
+    while level > 0:
+        changed = False
+        newKnownAP = []
 
-for poi in knownLoc:
-    locations[poi] = msrs[poi, (-9, -8)]
-
-level = 5
-while level > 0:
-    changed = False
-    newKnownAP = []
-
-    for i in unknownApSet:
-        msrSeq = []
-        for knap in knownLocSet:
-            if msrs[knap, i] != st.DEFAULT_RSSI:
-                msrSeq.append(
-                    [msrs[knap, i], locations[knap][0], locations[knap][1]])
-        if len(msrSeq) < level:
-            continue
-        if len(msrSeq) == 1:
-            pram = randomInit(msrSeq)
-        else:
-            filt = positionFilter(np.asarray(msrSeq))
-            if len(filt) < level:
+        for i in unknownApSet:
+            msrSeq = []
+            for knap in knownLocSet:
+                if msrs[knap, i] != st.DEFAULT_RSSI:
+                    msrSeq.append(
+                        [msrs[knap, i], locations[knap][0], locations[knap][1]])
+            if len(msrSeq) < level:
                 continue
-            pram = randomInit(filt)
-        if pram[0] == 100:
-            continue
-        apParam[i] = pram
-        newKnownAP.append(i)
-        changed = True
-        print("AP %d Solved..." % i)
-        print(pram)
-
-    if not changed:
-        level -= 1
-        print("level = %d ====================" % level)
-        continue
-
-    for ap in newKnownAP:
-        knownApSet.add(ap)
-        unknownApSet.remove(ap)
-
-    newKnownLoc = []
-
-    for j in unknownLocSet:
-        msrLine = msrs[j]
-        msr = []
-        for mi in range(0, apCount):
-            if msrLine[mi] == st.DEFAULT_RSSI:
+            if len(msrSeq) == 1:
+                pram = randomInit(msrSeq)
+            else:
+                filt = positionFilter(np.asarray(msrSeq))
+                if len(filt) < level:
+                    continue
+                pram = randomInit(filt)
+            if pram[0] == 100:
                 continue
-            if mi not in knownApSet:
+            apParam[i] = pram
+            newKnownAP.append(i)
+            changed = True
+            print("AP %d Solved..." % i)
+            print(pram)
+
+        if not changed:
+            level -= 1
+            print("level = %d ====================" % level)
+            continue
+
+        for ap in newKnownAP:
+            knownApSet.add(ap)
+            unknownApSet.remove(ap)
+
+        newKnownLoc = []
+
+        for j in unknownLocSet:
+            msrLine = msrs[j]
+            msr = []
+            for mi in range(0, apCount):
+                if msrLine[mi] == st.DEFAULT_RSSI:
+                    continue
+                if mi not in knownApSet:
+                    continue
+                msr.append([mi, msrLine[mi]])
+
+            if len(msr) < 3:
                 continue
-            msr.append([mi, msrLine[mi]])
+            dSeq = []
+            for mr in msr:
+                param = apParam[mr[0]]
+                dis = np.power(10, (param[0] - mr[1]) / (10 * param[1]))
+                dSeq.append([dis, param[2], param[3]])
 
-        if len(msr) < 3:
-            continue
-        dSeq = []
-        for mr in msr:
-            param = apParam[mr[0]]
-            dis = np.power(10, (param[0] - mr[1]) / (10 * param[1]))
-            dSeq.append([dis, param[2], param[3]])
+            filt = positionFilter(np.asarray(dSeq))
+            if len(filt) < 3:
+                continue
+            locations[j] = solveLocation(filt)
+            newKnownLoc.append(j)
 
-        filt = positionFilter(np.asarray(dSeq))
-        if len(filt) < 3:
-            continue
-        locations[j] = solveLocation(filt)
-        newKnownLoc.append(j)
+        for loc in newKnownLoc:
+            knownLocSet.add(loc)
+            unknownLocSet.remove(loc)
+    return apParam, locations
 
-    for loc in newKnownLoc:
-        knownLocSet.add(loc)
-        unknownLocSet.remove(loc)
 
-print(apParam)
+# devdf = np.loadtxt('./data/uji/midfile/devicediff_0_0.txt')
+# msrs = np.loadtxt('./data/uji/midfile/simpledata_0_0.txt')
+# row, col = msrs.shape
+# knownLoc = random.sample(range(0, row), (int)(row * st.KNOWN_LOC_PERCENT))
+# initAP, initLoc = ERSGA(msrs, knownLoc, devdf)
+# print(initAP)
+# print(initLoc)

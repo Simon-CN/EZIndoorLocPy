@@ -9,7 +9,8 @@ import devicediff as dif
 import locselect as locs
 import settings as st
 import utils as ut
-
+import initsolution as inis
+import random
 # %% Load Data
 data = ld.loadData()
 
@@ -28,3 +29,9 @@ ut.saveNPtoFile("./data/uji/midfile/simpledata_%d_%d.txt" %
                 (st.BUILDINGID, st.FLOORID), mgData)
 
 # %% Solve LDPL
+row, col = mgData.shape
+knownLoc = random.sample(range(0, row), (int)(row * st.KNOWN_LOC_PERCENT))
+initAP,initLoc = inis.ERSGA(mgData, knownLoc, devdiff)
+
+print(initAP)
+print(initLoc)
