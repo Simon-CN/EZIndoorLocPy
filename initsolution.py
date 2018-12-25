@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.optimize import leastsq
+import scipy.cluster.hierarchy as hie
 
 import settings as st
 
@@ -27,18 +28,12 @@ def solveLocation(seq):
         A.append([line1[1] - seq[i][1], line1[2] - seq[i][2]])
         B.append(0.5*(line1[0]**2-seq[i][0]**2+line1[1]**2-seq[i][1]**2 +
                       line1[2]**2-seq[i][2]**2))
-    try:
-        A = np.asmatrix(A)
-        B = np.asmatrix(B).T
-        AT = A.T
-        ATA = AT * A
-        ATA1 = ATA.I
-    except Exception as e:
-        print(A)
-        print(B)
-        print(seq)
-        print(e)
-        return [0, 0]
+
+    A = np.asmatrix(A)
+    B = np.asmatrix(B).T
+    AT = A.T
+    ATA = AT * A
+    ATA1 = ATA.I
     return (ATA1 * AT * B).T.tolist()[0]
 
 # %%
@@ -56,21 +51,40 @@ def getDistanceSeq(seq, p0, gamma):
     dis = []
     for ms in seq:
         dis.append(
-            [np.power(10, (p0 - ms[0]) / 10 * gamma), ms[1], ms[2]])
+            [np.power(10, (p0 - ms[0]) / (10 * gamma)), ms[1], ms[2]])
 
     return dis
 
+def drawCircles(r,x,y):
+    theta = np.arange(0, 2 * np.pi, 0.01)
+    sx = x + r * np.cos(theta)
+    sy = y + r * np.sin(theta)
+    plt.plot(sx, sy)
+    return
 
 def solveLoop(seq, p0, gamma, res):
-    loc = solveLocation(getDistanceSeq(seq, p0, gamma))
-    err = calculateError(seq, p0, gamma, loc)
-    if err < res[4]:
-        res[0] = p0
-        res[1] = gamma
-        res[2] = loc[0]
-        res[3] = loc[1]
-        res[4] = err
-
+    try:
+        disSeq = getDistanceSeq(seq, p0, gamma)
+        # plt.figure(0)
+        # for line in disSeq:
+        #     drawCircles(line[0], line[1], line[2])
+        # plt.show()
+        loc = solveLocation(disSeq)
+        err = calculateError(seq, p0, gamma, loc)
+        # print("p0: %d, gamma: %f, err: %f" % (p0, gamma, err))
+        if err < res[4]:
+            res[0] = p0
+            res[1] = gamma
+            res[2] = loc[0]
+            res[3] = loc[1]
+            res[4] = err
+    except Exception as e:
+        print('VVVVVVVVVVVVVVVVVVVVVVV')
+        print(seq)
+        print("p0 = %d" % p0)
+        print("gamma = %f" % gamma)
+        print(e)
+        print('^^^^^^^^^^^^^^^^^^^^^^^')
     return
 
 
@@ -78,8 +92,7 @@ def solveStrategyR12(seq):
     res = [100, 0, 0, 0, sys.maxsize]
     for p0 in range(st.POWER_MIN, st.POWER_MAX, st.POWER_SEARCH_STEP):
         for gamma in range(st.GAMMA_MIN, st.GAMMA_MAX, st.GAMMA_SEARCH_STEP):
-            solveLoop(seq, p0, gamma/10, res)
-
+            solveLoop(seq, p0, gamma / 10, res)
     return res
 
 
@@ -113,13 +126,26 @@ def randomInit(seq):
 # %%
 
 
-def trilaterate(apParam, msrs):
-    dSeq = []
-    for msr in msrs:
-        param = apParam[msr[0]]
-        dis = np.power(10, (param[0] - msr[1]) / (10 * param[1]))
-        dSeq.append([dis, param[2], param[3]])
-    return solveLocation(dSeq)
+def positionFilter(seq):
+    position = seq[:, (1, 2)]
+    Y = hie.distance.pdist(position)
+    Z = hie.linkage(Y, method='average')
+    res = hie.fcluster(Z, t=st.GRID_DISTANCE_THRESHOLD, criterion='distance')
+
+    cluDir = {}
+    for i, v in enumerate(res):
+        if v in cluDir.keys():
+            cluDir[v].append(i)
+        else:
+            tmp = [i]
+            cluDir[v] = tmp
+
+    filMsrs = []
+    for itm in cluDir.items():
+        clu = seq[itm[1]]
+        filMsrs.append([np.average(clu[:, 0]), np.average(
+            clu[:, 1]), np.average(clu[:, 2])])
+    return filMsrs
 
 
 # %%
@@ -133,32 +159,6 @@ for devl in devdf:
 row, col = msrs.shape
 apCount = col - 9
 
-for line in msrs:
-    for i in range(0, apCount):
-        if line[i] != st.DEFAULT_RSSI:
-            line[i] += devdir[line[-2]]
-            if line[i] < st.MIN_VALID_RSSI:
-                line[i] = st.DEFAULT_RSSI
-
-del_col = []
-del_row = []
-
-for i in range(0, row):
-    line = msrs[i, 0:apCount]
-    if len(line[line != st.DEFAULT_RSSI]) == 0:
-        del_row.append(i)
-
-for j in range(0, apCount):
-    col = msrs[:, j]
-    if len(col[col != st.DEFAULT_RSSI]) == 0:
-        del_col.append(j)
-
-msrs = np.delete(msrs, del_row, 0)
-msrs = np.delete(msrs, del_col, 1)
-row, col = msrs.shape
-apCount = col - 9
-
-
 knownLoc = random.sample(range(0, row), (int)(row * st.KNOWN_LOC_PERCENT))
 knownLocSet = set(knownLoc)
 unknownLocSet = set(range(0, row)).difference(knownLocSet)
@@ -169,22 +169,40 @@ unknownApSet = set(range(0, apCount)).difference(knownApSet)
 apParam = {}
 locations = {}
 
+for poi in knownLoc:
+    locations[poi] = msrs[poi, (-9, -8)]
+
 level = 5
 while level > 0:
     changed = False
     newKnownAP = []
 
     for i in unknownApSet:
-        msrSeq = msrs[list(knownLocSet)]
-        msrSeq = msrSeq[msrSeq[:, i] != 100]
+        msrSeq = []
+        for knap in knownLocSet:
+            if msrs[knap, i] != st.DEFAULT_RSSI:
+                msrSeq.append(
+                    [msrs[knap, i], locations[knap][0], locations[knap][1]])
         if len(msrSeq) < level:
             continue
-        apParam[i] = randomInit(msrSeq[:, (i, -9, -8)])
+        if len(msrSeq) == 1:
+            pram = randomInit(msrSeq)
+        else:
+            filt = positionFilter(np.asarray(msrSeq))
+            if len(filt) < level:
+                continue
+            pram = randomInit(filt)
+        if pram[0] == 100:
+            continue
+        apParam[i] = pram
         newKnownAP.append(i)
         changed = True
+        print("AP %d Solved..." % i)
+        print(pram)
 
     if not changed:
         level -= 1
+        print("level = %d ====================" % level)
         continue
 
     for ap in newKnownAP:
@@ -197,7 +215,7 @@ while level > 0:
         msrLine = msrs[j]
         msr = []
         for mi in range(0, apCount):
-            if msrLine[mi] == 100:
+            if msrLine[mi] == st.DEFAULT_RSSI:
                 continue
             if mi not in knownApSet:
                 continue
@@ -205,9 +223,20 @@ while level > 0:
 
         if len(msr) < 3:
             continue
-        locations[j] = trilaterate(apParam, msr)
+        dSeq = []
+        for mr in msr:
+            param = apParam[mr[0]]
+            dis = np.power(10, (param[0] - mr[1]) / (10 * param[1]))
+            dSeq.append([dis, param[2], param[3]])
+
+        filt = positionFilter(np.asarray(dSeq))
+        if len(filt) < 3:
+            continue
+        locations[j] = solveLocation(filt)
         newKnownLoc.append(j)
 
     for loc in newKnownLoc:
         knownLocSet.add(loc)
         unknownLocSet.remove(loc)
+
+print(apParam)

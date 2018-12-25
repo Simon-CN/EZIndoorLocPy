@@ -35,6 +35,11 @@ def loadData():
 
     st.AP_COUNT = col - 9
 
+    min_long = min(vdata[:, -9])
+    min_lat = min(vdata[:, -8])
+    vdata[:, -9] -= min_long - st.POSITION_OFFSET
+    vdata[:, -8] -= min_lat - st.POSITION_OFFSET
+
     datadf = pd.DataFrame(vdata)
     cols = {st.AP_COUNT: 'LONGITUDE', st.AP_COUNT+1: 'LATITUDE', st.AP_COUNT+2: 'FLOOR', st.AP_COUNT+3: 'BUILDINGID', st.AP_COUNT+4: 'SPACEID',
             st.AP_COUNT+5: 'RELATIVEPOSITION', st.AP_COUNT+6: 'USERID', st.AP_COUNT+7: 'PHONEID', st.AP_COUNT+8: 'TIMESTAMP'}

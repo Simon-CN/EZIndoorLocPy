@@ -1,27 +1,28 @@
-#Path
+# Path
 TRAIDATA_PATH = './data/uji/trainingData.csv'
 VALIDATION_PATH = './data/uji/validationData.csv'
 
-#DataSet Porperty
+# DataSet Porperty
 AP_COUNT = 520
 
-#Device Normalize
+# Device Normalize
 PROXIMATE_THRESHOLD = 3
 MIN_GAIN_DIFF = -20
 MAX_GAIN_DIFF = 20
 
-#Data Preprocess
+# Data Preprocess
 BUILDINGID = 0
 FLOORID = 0
 RSSI_THRESHOLD = 80
 DEFAULT_RSSI = 100
 MIN_VALID_RSSI = -80
+POSITION_OFFSET = 20
 
-#Cluster Param
+# Cluster Param
 AP_CLU_THRESHOLD = 0.1
 LOC_CLU_THRESHOLD = 0.1
 
-#Solve LDPL
+# Solve LDPL
 KNOWN_LOC_PERCENT = 0.2
 POWER_MAX = 0
 POWER_MIN = -50
@@ -30,6 +31,3 @@ GAMMA_MAX = 60
 GAMMA_MIN = 15
 GAMMA_SEARCH_STEP = 2
 GRID_DISTANCE_THRESHOLD = 1
-
-
-
