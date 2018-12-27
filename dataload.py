@@ -38,8 +38,6 @@ def loadData():
 
     min_long = min(vdata[:, -9])
     min_lat = min(vdata[:, -8])
-    max_long = max(vdata[:, -9])
-    max_lat = max(vdata[:, -8])
 
     vdata[:, -9] -= min_long
     vdata[:, -8] -= min_lat

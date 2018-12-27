@@ -148,6 +148,11 @@ def ERSGA(msrs, knownLoc, devdf):
         devdir[devl[0]] = devl[1]
     row, col = msrs.shape
     apCount = col - 9
+    
+    for line in msrs:
+        for i in range(0, apCount):
+            if line[i] != 100:
+                line[i] += devdir[line[-2]]
 
     # knownLoc = random.sample(range(0, row), (int)(row * st.KNOWN_LOC_PERCENT))
     knownLocSet = set(knownLoc)
