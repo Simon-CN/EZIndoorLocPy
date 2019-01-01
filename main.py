@@ -11,8 +11,10 @@ import settings as st
 import utils as ut
 import initsolution as inis
 import random
+import json
+
 # %% Load Data
-data = ld.loadData()
+data, apMap = ld.loadData()
 
 # %%Calculate RSSI Gain
 devdiff = dif.calculateDeviceDiff(data)
@@ -25,13 +27,14 @@ selectedLoc = locs.selectLocs(data)
 sData = data.values[selectedLoc, :][:, selectedAP]
 msrInfo = data.values[selectedLoc, -9:]
 mgData = np.hstack((sData, msrInfo))
+apMap = apMap[selectedAP]
 ut.saveNPtoFile("./data/uji/midfile/simpledata_%d_%d.txt" %
                 (st.BUILDINGID, st.FLOORID), mgData)
+ut.saveNPtoFile("./data/uji/midfile/filter_aps_%d_%d.txt" %
+                (st.BUILDINGID, st.FLOORID), apMap)
 
 # %% Solve LDPL
 row, col = mgData.shape
 knownLoc = random.sample(range(0, row), (int)(row * st.KNOWN_LOC_PERCENT))
-initAP,initLoc = inis.ERSGA(mgData, knownLoc, devdiff)
-
-print(initAP)
-print(initLoc)
+initSolution = inis.ERSGA(mgData, knownLoc, devdiff)
+ut.saveToFile("./data/uji/midfile/init_solution_%d_%d.txt" % (st.BUILDINGID, st.FLOORID), initSolution)

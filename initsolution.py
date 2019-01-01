@@ -1,3 +1,4 @@
+# %%
 import math
 import random
 import sys
@@ -5,10 +6,23 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from scipy.optimize import leastsq
 import scipy.cluster.hierarchy as hie
+from scipy.optimize import leastsq
 
 import settings as st
+
+
+def convertSolution(aps, locs, devDiff):
+    apParam = [[0] * 4 for i in range(len(aps))]
+    locations = [[0] * 2 for i in range(len(locs))]
+
+    for ap in aps:
+        apParam[ap] = aps[ap]
+
+    for lc in locs:
+        locations[lc] = locs[lc]
+
+    return [sys.maxsize, apParam, locations, devDiff]
 
 
 def solveLocation(seq):
@@ -92,18 +106,28 @@ def solveStrategyR12(seq):
 
 def solveStrategyR3(seq):
     res = [100, 0, 0, 0, sys.maxsize]
-    p0 = random.randint(st.POWER_MIN, st.POWER_MAX)
-    for gamma in range(st.GAMMA_MIN, st.GAMMA_MAX, st.GAMMA_SEARCH_STEP):
-        solveLoop(seq, p0, gamma/10, res)
-
+    i = 20
+    while True:
+        i -= 1
+        p0 = random.randint(st.POWER_MIN, st.POWER_MAX)
+        for gamma in range(st.GAMMA_MIN, st.GAMMA_MAX, st.GAMMA_SEARCH_STEP):
+            solveLoop(seq, p0, gamma / 10, res)
+        if res[0] != 100 or i == 0:
+            break
     return res
 
 
 def solveStartegyR45(seq):
     res = [100, 0, 0, 0, sys.maxsize]
-    p0 = random.randint(st.POWER_MIN, st.POWER_MAX)
-    gamma = random.randint(st.GAMMA_MIN, st.GAMMA_MAX)/10
-    solveLoop(seq, p0, gamma, res)
+    i = 20
+    while True:
+        i -= 1
+        p0 = random.randint(st.POWER_MIN, st.POWER_MAX)
+        gamma = random.randint(st.GAMMA_MIN, st.GAMMA_MAX)/10
+        solveLoop(seq, p0, gamma, res)
+        if res[0] != 100 or i == 0:
+            break
+
     return res
 
 
@@ -142,13 +166,13 @@ def positionFilter(seq):
 
 def ERSGA(msrs, knownLoc, devdf):
     st.SPACE_RANGE = [min(msrs[:, -9] - st.POSITION_OFFSET), max(msrs[:, -8]) + st.POSITION_OFFSET,
-                  max(msrs[:, -9]) + st.POSITION_OFFSET, min(msrs[:, -8]) - st.POSITION_OFFSET]
+                      max(msrs[:, -9]) + st.POSITION_OFFSET, min(msrs[:, -8]) - st.POSITION_OFFSET]
     devdir = {}
     for devl in devdf:
-        devdir[devl[0]] = devl[1]
+        devdir[int(devl[0])] = devl[1]
     row, col = msrs.shape
     apCount = col - 9
-    
+
     for line in msrs:
         for i in range(0, apCount):
             if line[i] != 100:
@@ -233,13 +257,27 @@ def ERSGA(msrs, knownLoc, devdf):
         for loc in newKnownLoc:
             knownLocSet.add(loc)
             unknownLocSet.remove(loc)
-    return apParam, locations
+
+    for ua in unknownApSet:
+        apParam[ua] = [random.randint(st.POWER_MIN, st.POWER_MAX), random.uniform(st.GAMMA_MIN, st.GAMMA_MAX), random.uniform(
+            st.SPACE_RANGE[0], st.SPACE_RANGE[2]), random.uniform(st.SPACE_RANGE[3], st.SPACE_RANGE[1])]
+
+    for ul in unknownLocSet:
+        locations[ul] = [random.uniform(st.SPACE_RANGE[0], st.SPACE_RANGE[2]), random.uniform(
+            st.SPACE_RANGE[3], st.SPACE_RANGE[1])]
+
+    return convertSolution(apParam, locations, devdir)
 
 
-# devdf = np.loadtxt('./data/uji/midfile/devicediff_0_0.txt')
-# msrs = np.loadtxt('./data/uji/midfile/simpledata_0_0.txt')
+# devdf = np.loadtxt("./data/uji/midfile/devicediff_%d_%d.txt" %
+#                    (st.BUILDINGID, st.FLOORID))
+# msrs = np.loadtxt("./data/uji/midfile/simpledata_%d_%d.txt" %
+#                   (st.BUILDINGID, st.FLOORID))
 # row, col = msrs.shape
 # knownLoc = random.sample(range(0, row), (int)(row * st.KNOWN_LOC_PERCENT))
-# initAP, initLoc = ERSGA(msrs, knownLoc, devdf)
-# print(initAP)
-# print(initLoc)
+# initAP, initLoc,devDir = ERSGA(msrs, knownLoc, devdf)
+# #%%
+# initSlu = convertSolution(initAP, initLoc, devDir)
+
+# #%%
+# print(initSlu)

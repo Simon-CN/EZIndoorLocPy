@@ -157,7 +157,7 @@ def calculateDeviceDiff(mdata):
 
     print("avg err: %f" % (sum(abs(ref - B)) / row))
 
-    return np.hstack((np.asarray(np.asmatrix(ids).T), np.asarray(x)))
+    return np.hstack((np.asarray(np.asmatrix(ids).T).astype(int), np.asarray(x)))
 
 
 # Test

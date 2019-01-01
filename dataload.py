@@ -12,6 +12,8 @@ def loadData():
     row, col = data.shape
     apCount = col - 9
 
+    apMap = list(range(0, apCount))
+
     vdata = data.values
     vdata[:, 0:apCount][vdata[:, 0:apCount] <
                         st.MIN_VALID_RSSI] = st.DEFAULT_RSSI
@@ -31,6 +33,7 @@ def loadData():
 
     vdata = np.delete(vdata, del_row, 0)
     vdata = np.delete(vdata, del_col, 1)
+    apMap = np.delete(apMap, del_col, 0)
 
     row, col = vdata.shape
 
@@ -47,4 +50,4 @@ def loadData():
             st.AP_COUNT+5: 'RELATIVEPOSITION', st.AP_COUNT+6: 'USERID', st.AP_COUNT+7: 'PHONEID', st.AP_COUNT+8: 'TIMESTAMP'}
     datadf.rename(columns=cols, inplace=True)
 
-    return datadf
+    return datadf, apMap

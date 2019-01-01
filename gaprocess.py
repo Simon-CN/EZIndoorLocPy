@@ -1,4 +1,4 @@
-#%%
+# %%
 import random
 import sys
 
@@ -7,6 +7,7 @@ import pandas as pd
 
 import initsolution as iis
 import settings as st
+import utils as ut
 
 
 def randomSolutions(num):
@@ -40,7 +41,7 @@ def calculateFitness(msrs, solutions):
                     continue
                 param = apParam[j]
                 loc = locations[i]
-                gain = devDiff[msrs[i, -2]]
+                gain = devDiff[msrs[i, -2].astype(int)]
                 err += abs(msrs[i][j] + gain - param[0] + 10 * param[1] * np.log10(np.sqrt(
                     (param[2]-loc[0])**2+(param[3]-loc[1])**2
                 )))
@@ -87,15 +88,33 @@ def GACross(oldSlu, newSlu):
     return
 
 
-msrs = np.loadtxt('./data/uji/midfile/simpledata_0_0.txt')
+msrs = np.loadtxt("./data/uji/midfile/simpledata_%d_%d.txt" %
+                  (st.BUILDINGID, st.FLOORID))
+initSlu = ut.loadData(
+    "./data/uji/midfile/init_solution_%d_%d.txt" % (st.BUILDINGID, st.FLOORID))
+
+iDev = {}
+for dev in initSlu[3]:
+    iDev[int(dev)] = initSlu[3][dev]
+
+initSlu[3] = iDev
+
+for i in range(0, len(initSlu[1])):
+    initSlu[1][i] = np.asarray(initSlu[1][i])[0:4]
+
+for j in range(0, len(initSlu[2])):
+    initSlu[2][j] = np.asarray(initSlu[2][j])
+
+
 st.MSR_COUNT, col = msrs.shape
 st.AP_COUNT = col - 9
-st.DEVICE_SET = set(list(msrs[:, -2]))
+st.DEVICE_SET = set(list(msrs[:, -2].astype(int)))
 
 st.SPACE_RANGE = [min(msrs[:, -9] - st.POSITION_OFFSET), max(msrs[:, -8]) + st.POSITION_OFFSET,
                   max(msrs[:, -9]) + st.POSITION_OFFSET, min(msrs[:, -8]) - st.POSITION_OFFSET]
 
 solutions = randomSolutions(st.SOLUTION_NUM)
+solutions.append(initSlu)
 
 loop = 0
 while (loop < st.GA_ROUND):
@@ -109,4 +128,3 @@ while (loop < st.GA_ROUND):
     GACross(solutions, newSolutions)
     GAPick(solutions, newSolutions)
     solutions = newSolutions
-
