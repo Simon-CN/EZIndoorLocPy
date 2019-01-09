@@ -121,7 +121,7 @@ while (loop < st.GA_ROUND):
     loop += 1
     print("loop %d" % loop)
     calculateFitness(msrs, solutions)
-    print("min fit = %d" % solutions[0][0])
+    print("min fit = %f" % solutions[0][0])
     newSolutions = randomSolutions(
         int(len(solutions) * (st.RANDOM_PERCENT/100)))
     GASelect(solutions, newSolutions)

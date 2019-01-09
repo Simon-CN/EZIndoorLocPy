@@ -30,7 +30,7 @@ def isProximate(msrs1, msrs2):
     cm1 -= tmp
     tmp = cm2[0]
     cm2 -= tmp
-    diff = abs(sum(cm1-cm2))
+    diff = abs(sum(cm1 - cm2))
     return diff <= st.PROXIMATE_THRESHOLD
 
 
@@ -161,7 +161,7 @@ def calculateDeviceDiff(mdata):
 
 
 # Test
-# srcData = pd.read_csv('./data/uji/trainingData.csv')
+# srcData = pd.read_csv('./data/sim/trainingData.csv')
 
 # mdata = srcData[(srcData.BUILDINGID == st.BUILDINGID)
 #                 & (srcData.FLOOR == st.FLOORID)]
