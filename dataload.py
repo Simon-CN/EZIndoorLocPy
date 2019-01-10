@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 import settings as st
-
+import utils as ut
 
 def loadData():
     srcData = pd.read_csv(st.TRAIDATA_PATH)
@@ -41,6 +41,8 @@ def loadData():
 
     min_long = min(vdata[:, -9])
     min_lat = min(vdata[:, -8])
+
+    ut.saveNPtoFile(st.MIDFILE_DIR+'offset_%d_%d.txt'%(st.BUILDINGID,st.FLOORID),np.asarray([min_long,min_lat]))
 
     vdata[:, -9] -= min_long
     vdata[:, -8] -= min_lat

@@ -1,4 +1,3 @@
-# %%
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -13,28 +12,29 @@ import initsolution as inis
 import random
 import json
 
-# %% Load Data
+# Load Data
 data, apMap = ld.loadData()
 
-# %%Calculate RSSI Gain
+# Calculate RSSI Gain
 devdiff = dif.calculateDeviceDiff(data)
-ut.saveNPtoFile("./data/uji/midfile/devicediff_%d_%d.txt" %
+ut.saveNPtoFile(st.MIDFILE_DIR+"devicediff_%d_%d.txt" %
                 (st.BUILDINGID, st.FLOORID), devdiff)
 
-# %% Simplify Data
+# Simplify Data
 selectedAP = aps.selectAPs(data)
 selectedLoc = locs.selectLocs(data)
 sData = data.values[selectedLoc, :][:, selectedAP]
 msrInfo = data.values[selectedLoc, -9:]
 mgData = np.hstack((sData, msrInfo))
 apMap = apMap[selectedAP]
-ut.saveNPtoFile("./data/uji/midfile/simpledata_%d_%d.txt" %
+ut.saveNPtoFile(st.MIDFILE_DIR+"simpledata_%d_%d.txt" %
                 (st.BUILDINGID, st.FLOORID), mgData)
-ut.saveNPtoFile("./data/uji/midfile/filter_aps_%d_%d.txt" %
+ut.saveNPtoFile(st.MIDFILE_DIR+"filter_aps_%d_%d.txt" %
                 (st.BUILDINGID, st.FLOORID), apMap)
 
-# %% Solve LDPL
+# Solve LDPL
 row, col = mgData.shape
 knownLoc = random.sample(range(0, row), (int)(row * st.KNOWN_LOC_PERCENT))
 initSolution = inis.ERSGA(mgData, knownLoc, devdiff)
-ut.saveToFile("./data/uji/midfile/init_solution_%d_%d.txt" % (st.BUILDINGID, st.FLOORID), initSolution)
+ut.saveToFile(st.MIDFILE_DIR+"init_solution_%d_%d.txt" %
+              (st.BUILDINGID, st.FLOORID), initSolution)

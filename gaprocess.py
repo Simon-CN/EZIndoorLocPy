@@ -1,4 +1,3 @@
-# %%
 import random
 import sys
 
@@ -17,13 +16,17 @@ def randomSolutions(num):
         locations = [[0] * 2 for i in range(st.MSR_COUNT)]
         devDiff = {}
         for j in range(st.AP_COUNT):
-            apParam[j] = np.asarray([random.randint(st.POWER_MIN, st.POWER_MAX), random.uniform(st.GAMMA_MIN, st.GAMMA_MAX), random.uniform(
+            apParam[j] = np.asarray([random.randint(st.POWER_MIN, st.POWER_MAX), random.uniform(st.GAMMA_MIN, st.GAMMA_MAX)/10, random.uniform(
                 st.SPACE_RANGE[0], st.SPACE_RANGE[2]), random.uniform(st.SPACE_RANGE[3], st.SPACE_RANGE[1])])
         for k in range(st.MSR_COUNT):
             locations[k] = np.asarray([random.uniform(st.SPACE_RANGE[0], st.SPACE_RANGE[2]), random.uniform(
                 st.SPACE_RANGE[3], st.SPACE_RANGE[1])])
         for dev in st.DEVICE_SET:
-            devDiff[dev] = random.uniform(st.MIN_GAIN_DIFF, st.MAX_GAIN_DIFF)
+            if len(st.DEVICE_SET) == 1:
+                devDiff[dev] = 0
+            else:
+                devDiff[dev] = random.uniform(
+                    st.MIN_GAIN_DIFF, st.MAX_GAIN_DIFF)
         solutions.append([sys.maxsize, apParam, locations, devDiff])
     return solutions
 
@@ -42,9 +45,9 @@ def calculateFitness(msrs, solutions):
                 param = apParam[j]
                 loc = locations[i]
                 gain = devDiff[msrs[i, -2].astype(int)]
-                err += abs(msrs[i][j] + gain - param[0] + 10 * param[1] * np.log10(np.sqrt(
+                err += int((abs(msrs[i][j] + gain - param[0] + 10 * param[1] * np.log10(np.sqrt(
                     (param[2]-loc[0])**2+(param[3]-loc[1])**2
-                )))
+                )))))
                 count += 1
         slu[0] = err / count
 
@@ -88,10 +91,10 @@ def GACross(oldSlu, newSlu):
     return
 
 
-msrs = np.loadtxt("./data/uji/midfile/simpledata_%d_%d.txt" %
+msrs = np.loadtxt(st.MIDFILE_DIR+"simpledata_%d_%d.txt" %
                   (st.BUILDINGID, st.FLOORID))
 initSlu = ut.loadData(
-    "./data/uji/midfile/init_solution_%d_%d.txt" % (st.BUILDINGID, st.FLOORID))
+    st.MIDFILE_DIR+"init_solution_%d_%d.txt" % (st.BUILDINGID, st.FLOORID))
 
 iDev = {}
 for dev in initSlu[3]:
@@ -117,14 +120,31 @@ solutions = randomSolutions(st.SOLUTION_NUM)
 solutions.append(initSlu)
 
 loop = 0
+optslu = []
 while (loop < st.GA_ROUND):
     loop += 1
     print("loop %d" % loop)
     calculateFitness(msrs, solutions)
     print("min fit = %f" % solutions[0][0])
+    optslu = solutions[0]
     newSolutions = randomSolutions(
         int(len(solutions) * (st.RANDOM_PERCENT/100)))
     GASelect(solutions, newSolutions)
     GACross(solutions, newSolutions)
     GAPick(solutions, newSolutions)
     solutions = newSolutions
+
+
+for i in range(0, len(optslu[1])):
+    optslu[1][i] = optslu[1][i].tolist()
+
+for j in range(0, len(optslu[2])):
+    optslu[2][j] = optslu[2][j].tolist()
+
+dl = []
+for dv in optslu[3].items():
+    dl.append([dv[0], dv[1]])
+optslu[3] = dl
+
+ut.saveToFile(st.MIDFILE_DIR+'solution_%d_%d.json' %
+              (st.BUILDINGID, st.FLOORID), optslu)

@@ -9,12 +9,15 @@ height = 40
 apcount = 20
 mscount = 1000
 vlcount = 200
-devcount = 4
+devcount = 1
 
 # gen dev
 devs = []
-for i in range(0, devcount):
-    devs.append(random.randint(-20, 20))
+if devcount == 1:
+    devs.append(0)
+else:
+    for i in range(0, devcount):
+        devs.append(random.randint(-20, 20))
 print(devs)
 # gen aps
 apparam = {'lat': np.random.randint(1, width + 1, apcount),
@@ -41,12 +44,15 @@ for row in mspos.iterrows():
                       2 + (app.lon - row[1].lon) ** 2)
         rs = app['pow'] - 10 * app.los * \
             np.log10(dis) + np.random.normal() + devs[seq]
-        if rs < -70:
+        if rs >= 0:
+            rs = app['pow']
+        elif rs < -70:
             rs = 100
+
         rssi["WAP%(api)03d" % {'api': index+1}] = rs
     msrs.append(rssi)
     ct += 1
-    if ct > mscount / 4:
+    if ct > mscount / devcount:
         seq += 1
         ct = 0
 
@@ -72,23 +78,25 @@ msrs = []
 seq = 0
 ct = 0
 phoneids = []
-for row in vlpos.iterrows():
-    rssi = {}
-    phoneids.append(seq)
-    for index, app in aps.iterrows():
-        dis = np.sqrt((app.lat - row[1].lat) **
-                      2 + (app.lon - row[1].lon) ** 2)
-        rs = app['pow'] - 10 * app.los * \
-            np.log10(dis) + np.random.normal() + devs[seq]
-        if rs < -70:
-            rs = 100
-        rssi["WAP%(api)03d" % {'api': index+1}] = rs
-    msrs.append(rssi)
-    ct += 1
-    if ct > vlcount / 4:
-        seq += 1
-        ct = 0
-
+try:
+    for row in vlpos.iterrows():
+        rssi = {}
+        phoneids.append(seq)
+        for index, app in aps.iterrows():
+            dis = np.sqrt((app.lat - row[1].lat) **
+                          2 + (app.lon - row[1].lon) ** 2)
+            rs = app['pow'] - 10 * app.los * \
+                np.log10(dis) + np.random.normal() + devs[seq]
+            if rs < -70:
+                rs = 100
+            rssi["WAP%(api)03d" % {'api': index+1}] = rs
+        msrs.append(rssi)
+        ct += 1
+        if ct > vlcount/devcount:
+            seq += 1
+            ct = 0
+except Exception as e:
+    print(e)
 vlmsrsdf = pd.DataFrame(msrs)
 vlmsrsdf['LONGITUDE'] = mspos.lon
 vlmsrsdf['LATITUDE'] = mspos.lat
@@ -105,6 +113,6 @@ print(vlmsrsdf)
 
 # save to file
 aps.to_csv('./data/sim/aps.csv', index=False)
-msrsdf.to_csv('./data/sim/training.csv', index=False)
-vlmsrsdf.to_csv('./data/sim/validation.csv', index=False)
+msrsdf.to_csv('./data/sim/trainingData.csv', index=False)
+vlmsrsdf.to_csv('./data/sim/validationData.csv', index=False)
 np.savetxt('./data/sim/dev.txt', np.asarray(devs))

@@ -1,6 +1,9 @@
 # Path
-TRAIDATA_PATH = './data/uji/trainingData.csv'
-VALIDATION_PATH = './data/uji/validationData.csv'
+DATA_SRC_DIR = './data/uji/'
+TRAIDATA_PATH = DATA_SRC_DIR+'trainingData.csv'
+VALIDATION_PATH = DATA_SRC_DIR+'validationData.csv'
+MIDFILE_DIR = DATA_SRC_DIR+'midfile/'
+
 
 # DataSet Porperty
 AP_COUNT = 0
@@ -39,7 +42,7 @@ GRID_DISTANCE_THRESHOLD = 1
 
 # GA
 SOLUTION_NUM = 50
-GA_ROUND = 100
+GA_ROUND = 1
 SELECT_PERCENT = 10
 PICK_PERCENT = 20
 RANDOM_PERCENT = 10

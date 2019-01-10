@@ -14,7 +14,7 @@ import settings as st
 def getCommonMsr(msrs1, msrs2):
     commonIndex = []
     for i in range(0, st.AP_COUNT):
-        if msrs1[i] != 100 and msrs2[i] != 100:
+        if msrs1[i] != st.MIN_VALID_RSSI or msrs2[i] != st.MIN_VALID_RSSI:
             commonIndex.append(i)
     return commonIndex
 
@@ -30,7 +30,7 @@ def isProximate(msrs1, msrs2):
     cm1 -= tmp
     tmp = cm2[0]
     cm2 -= tmp
-    diff = abs(sum(cm1 - cm2))
+    diff = abs(sum(cm1 - cm2))/len(common)
     return diff <= st.PROXIMATE_THRESHOLD
 
 
@@ -100,22 +100,28 @@ def calculateGain(dev1, dev2):
 
 
 def calculateDeviceDiff(mdata):
+    row, col = mdata.shape
+    st.AP_COUNT = col-9
     divMsrs = []
     ids = list(set(mdata.PHONEID))
 
     print("Device List: ")
     print(ids)
     print("Count %d" % len(ids))
+    if len(ids) == 1:
+        return [[ids[0], 0]]
 
     for id in ids:
-        divMsrs.append(mdata[mdata.PHONEID == id])
+        vls = mdata[mdata.PHONEID == id].values[:, 0:st.AP_COUNT]
+        vls[vls == st.DEFAULT_RSSI] = st.MIN_VALID_RSSI
+        divMsrs.append(vls)
 
     gainMatrix = []
 
     for i in range(0, len(divMsrs) - 1):
         for j in range(i + 1, len(divMsrs)):
             print("device %d <> device %d start..." % (i, j))
-            gain = calculateGain(divMsrs[i].values, divMsrs[j].values)
+            gain = calculateGain(divMsrs[i], divMsrs[j])
             if (gain[0] == 0):
                 continue
             gainMatrix.append([i, j, gain[1], gain[2]])
@@ -161,7 +167,7 @@ def calculateDeviceDiff(mdata):
 
 
 # Test
-# srcData = pd.read_csv('./data/sim/trainingData.csv')
+# srcData = pd.read_csv(st.TRAIDATA_PATH)
 
 # mdata = srcData[(srcData.BUILDINGID == st.BUILDINGID)
 #                 & (srcData.FLOOR == st.FLOORID)]

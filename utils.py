@@ -12,7 +12,7 @@ def saveNPtoFile(path, x):
 def saveToFile(path, x):
     if os.path.exists(path):
         os.remove(path)
-    json.dump(x, open(path, "w"))
+    json.dump(x, open(path, "w+"))
     return
 
 def loadData(path):
