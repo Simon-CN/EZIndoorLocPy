@@ -37,7 +37,8 @@ def solveLocation(seq):
     line1 = seq[0]
     for i in range(1, level):
         A.append([line1[1] - seq[i][1], line1[2] - seq[i][2]])
-        B.append(0.5*(line1[0]**2-seq[i][0]**2+line1[1]**2-seq[i][1]**2 +
+        B.append(0.5*(seq[i][0]**2
+                      -line1[0]**2+line1[1]**2-seq[i][1]**2 +
                       line1[2]**2-seq[i][2]**2))
 
     A = np.asmatrix(A)

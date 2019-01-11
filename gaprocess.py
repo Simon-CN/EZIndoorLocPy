@@ -117,6 +117,9 @@ st.SPACE_RANGE = [min(msrs[:, -9] - st.POSITION_OFFSET), max(msrs[:, -8]) + st.P
                   max(msrs[:, -9]) + st.POSITION_OFFSET, min(msrs[:, -8]) - st.POSITION_OFFSET]
 
 solutions = randomSolutions(st.SOLUTION_NUM)
+
+for i in range(0, len(solutions)):
+    solutions[i] = mergeSolution(initSlu, solutions[i])
 solutions.append(initSlu)
 
 loop = 0

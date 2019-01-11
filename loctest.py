@@ -6,9 +6,25 @@ import utils as ut
 import matplotlib.pyplot as plt
 from scipy import stats
 
+def drawCircle(r, x, y):
+    theta = np.arange(0, 2 * np.pi, 0.01)
+    ax = x + r * np.cos(theta)
+    ay = y + r * np.sin(theta)
+    plt.figure(0)
+    plt.plot(ax, ay)
+    return
+
+def drawCircleSeq(seq, loc):
+    plt.figure(0)
+    for ln in seq:
+       drawCircle(ln[0], ln[1], ln[2])
+    plt.plot(loc[0], loc[1], color='b', marker='o')
+    plt.show()
+    return
+
 vldata = pd.read_csv(st.VALIDATION_PATH)
 filtAP = np.loadtxt(st.MIDFILE_DIR+'filter_aps_%d_%d.txt' %
-                    (st.BUILDINGID, st.FLOORID), dtype=int)
+                    (st.BUILDINGID, st.FLOORID))
 offset = np.loadtxt(st.MIDFILE_DIR+'offset_%d_%d.txt' %
                     (st.BUILDINGID, st.FLOORID))
 model = ut.loadData(st.MIDFILE_DIR+'solution_%d_%d.json' %
@@ -16,13 +32,14 @@ model = ut.loadData(st.MIDFILE_DIR+'solution_%d_%d.json' %
 devdiff = np.loadtxt(st.MIDFILE_DIR+'devicediff_%d_%d.txt' %
                      (st.BUILDINGID, st.FLOORID))
 
+filtAP.astype(int)
 apMap = {}
 for i in range(0, len(filtAP)):
     apMap[filtAP[i]] = i
 
-devMap = {}
-for dv in devdiff:
-    devMap[int(dv[0])] = dv[1]
+devMap = {0:0}
+# for dv in devdiff:
+#     devMap[int(dv[0])] = dv[1]
 
 data = vldata.values
 row, col = data.shape
@@ -41,8 +58,9 @@ for line in data:
     if len(seq) == 0:
         res.append([0, 0])
     else:
-        res.append(solveLocation(seq))
-
+        loc = solveLocation(seq)
+        res.append(loc)
+        drawCircleSeq(seq,loc)
 ref=data[:,(-9,-8)]
 
 err=[]
