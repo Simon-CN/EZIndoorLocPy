@@ -1,5 +1,5 @@
 # Path
-DATA_SRC_DIR = './data/uji/'
+DATA_SRC_DIR = './data/f7/'
 TRAIDATA_PATH = DATA_SRC_DIR+'trainingData.csv'
 VALIDATION_PATH = DATA_SRC_DIR+'validationData.csv'
 MIDFILE_DIR = DATA_SRC_DIR+'midfile/'
@@ -9,6 +9,7 @@ MIDFILE_DIR = DATA_SRC_DIR+'midfile/'
 AP_COUNT = 0
 MSR_COUNT = 0
 DEVICE_SET = set()
+MAP_SCALE = 12
 
 # Device Normalize
 PROXIMATE_THRESHOLD = 3
@@ -16,8 +17,8 @@ MIN_GAIN_DIFF = -20
 MAX_GAIN_DIFF = 20
 
 # Data Preprocess
-BUILDINGID = 1
-FLOORID = 1
+BUILDINGID = 0
+FLOORID = 0
 RSSI_THRESHOLD = 80
 DEFAULT_RSSI = 100
 MIN_VALID_RSSI = -80

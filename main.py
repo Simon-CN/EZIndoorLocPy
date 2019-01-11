@@ -34,7 +34,12 @@ ut.saveNPtoFile(st.MIDFILE_DIR+"filter_aps_%d_%d.txt" %
 
 # Solve LDPL
 row, col = mgData.shape
-knownLoc = random.sample(range(0, row), (int)(row * st.KNOWN_LOC_PERCENT))
+
+knownLoc = []
+for i in range(0, len(mgData)):
+    if mgData[i][-9] != -1 or mgData[i][-8] != -1:
+        knownLoc.append(i)
+
 initSolution = inis.ERSGA(mgData, knownLoc, devdiff)
 ut.saveToFile(st.MIDFILE_DIR+"init_solution_%d_%d.txt" %
               (st.BUILDINGID, st.FLOORID), initSolution)
