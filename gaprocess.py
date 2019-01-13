@@ -146,7 +146,7 @@ for j in range(0, len(optslu[2])):
 
 dl = []
 for dv in optslu[3].items():
-    dl.append([dv[0], dv[1]])
+    dl.append([int(dv[0]), dv[1]])
 optslu[3] = dl
 
 ut.saveToFile(st.MIDFILE_DIR+'solution_%d_%d.json' %
