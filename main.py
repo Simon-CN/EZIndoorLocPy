@@ -1,3 +1,7 @@
+#%%
+import json
+import random
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -5,12 +9,11 @@ import pandas as pd
 import apselect as aps
 import dataload as ld
 import devicediff as dif
+import gaprocess as ga
+import initsolution as inis
 import locselect as locs
 import settings as st
 import utils as ut
-import initsolution as inis
-import random
-import json
 
 # Load Data
 data, apMap = ld.loadData()
@@ -43,3 +46,6 @@ for i in range(0, len(mgData)):
 initSolution = inis.ERSGA(mgData, knownLoc, devdiff)
 ut.saveToFile(st.MIDFILE_DIR+"init_solution_%d_%d.txt" %
               (st.BUILDINGID, st.FLOORID), initSolution)
+optslu = ga.GASolve(mgData, initSolution)
+ut.saveToFile(st.MIDFILE_DIR+'solution_%d_%d.json' %
+              (st.BUILDINGID, st.FLOORID), optslu)

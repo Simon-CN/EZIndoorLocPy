@@ -38,7 +38,7 @@ def solveLocation(seq):
     for i in range(1, level):
         A.append([line1[1] - seq[i][1], line1[2] - seq[i][2]])
         B.append(0.5*(seq[i][0]**2
-                      -line1[0]**2+line1[1]**2-seq[i][1]**2 +
+                      - line1[0]**2+line1[1]**2-seq[i][1]**2 +
                       line1[2]**2-seq[i][2]**2))
 
     A = np.asmatrix(A)
@@ -74,9 +74,20 @@ def drawCircles(r, x, y):
     return
 
 
+def filterDistanceSeq(seq):
+    newSeq = []
+    for s in seq:
+        if s[0] <= st.RADIUS_THRESHOLD:
+            newSeq.append(s)
+    return newSeq
+
+
 def solveLoop(seq, p0, gamma, res):
     try:
         disSeq = getDistanceSeq(seq, p0, gamma)
+        disSeq = filterDistanceSeq(disSeq)
+        if len(disSeq) == 0:
+            return
         # plt.figure(0)
         # for line in disSeq:
         #     drawCircles(line[0], line[1], line[2])
@@ -162,12 +173,15 @@ def positionFilter(seq):
         clu = seq[itm[1]]
         filMsrs.append([np.average(clu[:, 0]), np.average(
             clu[:, 1]), np.average(clu[:, 2])])
+    filMsrs = filterDistanceSeq(filMsrs)
     return filMsrs
 
 
 def ERSGA(msrs, knownLoc, devdf):
     st.SPACE_RANGE = [min(msrs[:, -9] - st.POSITION_OFFSET), max(msrs[:, -8]) + st.POSITION_OFFSET,
                       max(msrs[:, -9]) + st.POSITION_OFFSET, min(msrs[:, -8]) - st.POSITION_OFFSET]
+    st.RADIUS_THRESHOLD = np.sqrt(
+        (st.SPACE_RANGE[0]-st.SPACE_RANGE[2])**2+(st.SPACE_RANGE[1]-st.SPACE_RANGE[3])**2)/2
     devdir = {}
     for devl in devdf:
         devdir[int(devl[0])] = devl[1]
@@ -276,7 +290,7 @@ def ERSGA(msrs, knownLoc, devdf):
 #                   (st.BUILDINGID, st.FLOORID))
 # row, col = msrs.shape
 # knownLoc = random.sample(range(0, row), (int)(row * st.KNOWN_LOC_PERCENT))
-# initAP, initLoc,devDir = ERSGA(msrs, knownLoc, devdf)
+# initSlu = ERSGA(msrs, knownLoc, devdf)
 # #%%
 # initSlu = convertSolution(initAP, initLoc, devDir)
 

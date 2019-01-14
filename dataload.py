@@ -4,11 +4,11 @@ import pandas as pd
 import settings as st
 import utils as ut
 
+
 def loadData():
     srcData = pd.read_csv(st.TRAIDATA_PATH)
     data = srcData[(srcData.BUILDINGID == st.BUILDINGID)
                    & (srcData.FLOOR == st.FLOORID)]
-
     row, col = data.shape
     apCount = col - 9
 

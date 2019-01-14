@@ -1,4 +1,4 @@
-from initsolution import solveLocation
+from initsolution import solveLocation, filterDistanceSeq
 import pandas as pd
 import numpy as np
 import settings as st
@@ -40,10 +40,10 @@ apMap = {}
 for i in range(0, len(filtAP)):
     apMap[filtAP[i]] = i
 
-# devMap = {0: 0}
-devMap = {}
-for dv in devdiff:
-    devMap[int(dv[0])] = dv[1]
+devMap = {0: 0}
+# devMap = {}
+# for dv in devdiff:
+#     devMap[int(dv[0])] = dv[1]
 
 data = vldata.values
 row, col = data.shape
@@ -66,6 +66,7 @@ for line in data:
     if len(seq) == 0:
         res.append([0, 0])
     else:
+        seq = filterDistanceSeq(seq)
         loc = solveLocation(seq)
         res.append(loc)
         # drawCircleSeq(seq,loc)
@@ -79,8 +80,10 @@ for i in range(0, len(res)):
     print(res[i])
     print("...")
 
+print(err)
+print("avg")
 print(np.average(err))
 plt.figure(0)
-cdf = stats.cumfreq(err)
-plt.plot(cdf[0])
+sterr = np.sort(err)
+plt.plot(np.linspace(0, 1, len(err)), sterr)
 plt.show()
