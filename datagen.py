@@ -4,9 +4,9 @@ import pandas as pd
 import random
 
 # settings
-width = 40
+width = 80
 height = 40
-apcount = 20
+apcount = 80
 mscount = 1000
 vlcount = 200
 devcount = 1

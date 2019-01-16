@@ -85,7 +85,7 @@ def filterDistanceSeq(seq):
 def solveLoop(seq, p0, gamma, res):
     try:
         disSeq = getDistanceSeq(seq, p0, gamma)
-        disSeq = filterDistanceSeq(disSeq)
+        # disSeq = filterDistanceSeq(disSeq)
         if len(disSeq) == 0:
             return
         # plt.figure(0)

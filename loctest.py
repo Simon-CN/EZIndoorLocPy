@@ -11,15 +11,23 @@ def drawCircle(r, x, y):
     theta = np.arange(0, 2 * np.pi, 0.01)
     ax = x + r * np.cos(theta)
     ay = y + r * np.sin(theta)
-    plt.plot(ax, ay)
+    if r < 60:
+        plt.plot(ax, ay)
+    else:
+        plt.plot(ax, ay, linestyle=':')
     return
 
 
-def drawCircleSeq(seq, loc):
+def drawCircleSeq(seq, loc,ref):
     plt.figure(0)
     for ln in seq:
         drawCircle(ln[0], ln[1], ln[2])
+    bdx = [0,100,100,0,0]
+    bdy = [0, 0, 60, 60, 0]
+    plt.plot(bdx, bdy, color='k')
+    plt.gca().set_aspect('equal', adjustable='box')
     plt.plot(loc[0], loc[1], color='b', marker='o')
+    plt.plot(ref[0], ref[1], color='r', marker='o')
     plt.show()
     return
 
@@ -50,8 +58,10 @@ row, col = data.shape
 apCount = col-9
 
 res = []
-
-for line in data:
+ref = data[:, (-9, -8)]
+for j in range(0, len(data)):
+    line = data[j]
+# for line in data:
     seq = []
     for i in range(0, apCount):
         if line[i] != st.DEFAULT_RSSI and i in apMap:
@@ -69,8 +79,8 @@ for line in data:
         seq = filterDistanceSeq(seq)
         loc = solveLocation(seq)
         res.append(loc)
-        # drawCircleSeq(seq,loc)
-ref = data[:, (-9, -8)]
+        # drawCircleSeq(seq, loc, ref[j])
+
 
 err = []
 for i in range(0, len(res)):
