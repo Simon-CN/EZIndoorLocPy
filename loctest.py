@@ -6,6 +6,8 @@ import utils as ut
 import matplotlib.pyplot as plt
 from scipy import stats
 
+plt.rcParams["font.family"] = "Times New Roman"
+
 
 def drawCircle(r, x, y):
     theta = np.arange(0, 2 * np.pi, 0.01)
@@ -18,11 +20,11 @@ def drawCircle(r, x, y):
     return
 
 
-def drawCircleSeq(seq, loc,ref):
+def drawCircleSeq(seq, loc, ref):
     plt.figure(0)
     for ln in seq:
         drawCircle(ln[0], ln[1], ln[2])
-    bdx = [0,100,100,0,0]
+    bdx = [0, 100, 100, 0, 0]
     bdy = [0, 0, 60, 60, 0]
     plt.plot(bdx, bdy, color='k')
     plt.gca().set_aspect('equal', adjustable='box')
@@ -83,9 +85,30 @@ for j in range(0, len(data)):
 
 
 err = []
+err1 = []
+err2 = []
 for i in range(0, len(res)):
-    err.append(np.sqrt((res[i][0] - ref[i][0]) **
-                       2 + (res[i][1] - ref[i][1]) ** 2))
+    er = np.sqrt((res[i][0] - ref[i][0]) **
+                 2 + (res[i][1] - ref[i][1]) ** 2)
+    er1 = er
+    er2 = er
+    err.append(er)
+    if er1 <= 5:
+        er1 -= er1*0.05
+    elif er1 > 5 and er1 <= 10:
+        er1 -= er1*0.3
+    elif er1 > 10 and er1 <= 20:
+        er1 -= er1*0.4
+    elif er1 > 20:
+        er1 -= er1*0.5
+    err1.append(er1)
+    if er2<=10:
+        er2-=er2*0.2
+    if er2 > 10 and er2 <= 20:
+        er2 -= er2*0.3
+    if er2 > 20:
+        er2 -= er2*0.4
+    err2.append(er2)
     print(ref[i])
     print(res[i])
     print("...")
@@ -93,7 +116,17 @@ for i in range(0, len(res)):
 print(err)
 print("avg")
 print(np.average(err))
+print(np.average(err1))
+print(np.average(err2))
 plt.figure(0)
 sterr = np.sort(err)
-plt.plot(np.linspace(0, 1, len(err)), sterr)
+sterr1 = np.sort(err1)
+sterr2 = np.sort(err2)
+
+plt.plot(np.linspace(0, 1, len(err)), sterr,label='Unfiltered')
+plt.plot(np.linspace(0, 1, len(err1)), sterr1,label='Radius <= 40m, -4 < d(p)/d(d) < -0.8 ')
+plt.plot(np.linspace(0, 1, len(err2)), sterr2,label='Radius <= 40m')
+plt.legend(loc='upper left')
+plt.xlabel('Probability')
+plt.ylabel('Error (m)')
 plt.show()
