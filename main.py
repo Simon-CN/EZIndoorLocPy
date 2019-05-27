@@ -1,4 +1,4 @@
-#%%
+# %%
 import json
 import random
 
@@ -36,7 +36,9 @@ ut.saveNPtoFile(st.MIDFILE_DIR+"filter_aps_%d_%d.txt" %
                 (st.BUILDINGID, st.FLOORID), apMap)
 
 # Solve LDPL
+# mgData = data
 row, col = mgData.shape
+
 
 knownLoc = []
 for i in range(0, len(mgData)):

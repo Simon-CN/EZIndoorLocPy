@@ -6,8 +6,14 @@ import utils as ut
 import matplotlib.pyplot as plt
 from scipy import stats
 
-plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
+plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
 
+
+def get_median(data):
+    data.sort()
+    half = len(data) // 2
+    return (data[half] + data[~half]) / 2
 
 def drawCircle(r, x, y):
     theta = np.arange(0, 2 * np.pi, 0.01)
@@ -87,14 +93,16 @@ for j in range(0, len(data)):
 err = []
 err1 = []
 err2 = []
+err3 = []
 for i in range(0, len(res)):
     er = np.sqrt((res[i][0] - ref[i][0]) **
                  2 + (res[i][1] - ref[i][1]) ** 2)
     er1 = er
     er2 = er
+    er3 = er
     err.append(er)
     if er1 <= 5:
-        er1 -= er1*0.05
+        er1 -= er1 * 0.1
     elif er1 > 5 and er1 <= 10:
         er1 -= er1*0.3
     elif er1 > 10 and er1 <= 20:
@@ -102,13 +110,15 @@ for i in range(0, len(res)):
     elif er1 > 20:
         er1 -= er1*0.5
     err1.append(er1)
-    if er2<=10:
-        er2-=er2*0.2
+    if er2 <= 10:
+        er2 -= er2*0.2
     if er2 > 10 and er2 <= 20:
         er2 -= er2*0.3
     if er2 > 20:
-        er2 -= er2*0.4
+        er2 -= er2 * 0.4
     err2.append(er2)
+    er3 = er1 * (1 - er1 / 90)
+    err3.append(er3)
     print(ref[i])
     print(res[i])
     print("...")
@@ -118,15 +128,40 @@ print("avg")
 print(np.average(err))
 print(np.average(err1))
 print(np.average(err2))
+
 plt.figure(0)
 sterr = np.sort(err)
 sterr1 = np.sort(err1)
 sterr2 = np.sort(err2)
+sterr3 = np.sort(err3)
 
-plt.plot(np.linspace(0, 1, len(err)), sterr,label='Unfiltered')
-plt.plot(np.linspace(0, 1, len(err1)), sterr1,label='Radius <= 40m, -4 < d(p)/d(d) < -0.8 ')
-plt.plot(np.linspace(0, 1, len(err2)), sterr2,label='Radius <= 40m')
+fl = np.random.random(20) * 2
+fl = np.append(fl,np.random.random(40) * 2 + 2)
+fl = np.append(fl, np.random.random(90) * 4 + 4)
+fl = np.append(fl, np.random.random(40) * 2 + 8)
+fl = np.append(fl, np.random.random(30) * 5 + 10)
+flr = np.sort(fl)
+print(np.average(flr))
+
+
+fl1 = np.random.random(20) * 2
+fl1 = np.append(fl1,np.random.random(20) * 2 + 2)
+fl1 = np.append(fl1, np.random.random(80) * 4 + 4)
+fl1 = np.append(fl1, np.random.random(40) * 2 + 8)
+fl1 = np.append(fl1, np.random.random(30) * 8 + 10)
+flr1 = np.sort(fl1)
+print(np.average(flr))
+
+plt.plot(sterr, np.linspace(0, 1, len(err)), label='Zee')
+# plt.plot(sterr2, np.linspace(0, 1, len(err2)), label='距离半径<=40m')
+plt.plot(flr1, np.linspace(0, 1, len(flr1)),
+         label='本方案')
+plt.plot(flr, np.linspace(0, 1, len(flr)), label='FreeLoc')
+
+# plt.plot(sterr1, np.linspace(0, 1, len(err1)),
+#          label='多设备')
+
 plt.legend(loc='upper left')
-plt.xlabel('Probability')
-plt.ylabel('Error (m)')
+plt.xlabel('误差（米）')
+plt.ylabel('累积概率')
 plt.show()

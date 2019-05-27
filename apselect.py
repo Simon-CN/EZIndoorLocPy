@@ -26,8 +26,9 @@ def calculateDistance(a, b):
 def doCluster(tdata):
     dis = hcluster.distance.pdist(tdata, metric=calculateDistance)
     Z = hcluster.linkage(dis, method='average')
-    res = hcluster.fcluster(Z, st.AP_CLU_THRESHOLD)
-
+    hcluster.dendrogram(Z, color_threshold=st.AP_CLU_THRESHOLD)
+    res = hcluster.fcluster(Z, st.AP_CLU_THRESHOLD,criterion='distance')
+    print(res)
     return res
 
 
@@ -103,3 +104,11 @@ def selectAPs(srcData):
 # hcluster.dendrogram(Z, color_threshold=0.1)
 
 # res = hcluster.fcluster(Z, st.AP_CLU_THRESHOLD)
+# plt.show()
+import dataload as ld
+data, apMap = ld.loadData()
+sa = selectAPs(data)
+plt.show()
+print(len(sa))
+print(st.AP_COUNT)
+

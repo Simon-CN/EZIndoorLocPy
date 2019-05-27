@@ -35,9 +35,9 @@ def calculateSimilarity(a, b):
 def doCluster(data):
     sim = hie.distance.pdist(data, metric=calculateSimilarity)
     Z = hie.linkage(sim, method='average')
-    # hie.dendrogram(Z, color_threshold=0.9)
-    res = hie.fcluster(Z, st.LOC_CLU_THRESHOLD)
-
+    hie.dendrogram(Z, color_threshold=st.LOC_CLU_THRESHOLD)
+    res = hie.fcluster(Z, st.LOC_CLU_THRESHOLD,criterion='distance')
+    print(res)
     return res
 
 
@@ -107,3 +107,9 @@ def selectLocs(srcData):
 
 
 # res = selectLocs(data)
+import dataload as ld
+data, apMap = ld.loadData()
+ls = selectLocs(data)
+print(len(ls))
+print(data.shape)
+plt.show()
