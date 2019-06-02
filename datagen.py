@@ -6,9 +6,9 @@ import random
 # settings
 width = 80
 height = 40
-apcount = 80
-mscount = 1000
-vlcount = 200
+apcount = 10
+mscount = 200
+vlcount = 50
 devcount = 1
 
 # gen dev

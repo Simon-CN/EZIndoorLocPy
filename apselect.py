@@ -105,10 +105,10 @@ def selectAPs(srcData):
 
 # res = hcluster.fcluster(Z, st.AP_CLU_THRESHOLD)
 # plt.show()
-import dataload as ld
-data, apMap = ld.loadData()
-sa = selectAPs(data)
-plt.show()
-print(len(sa))
-print(st.AP_COUNT)
+# import dataload as ld
+# data, apMap = ld.loadData()
+# sa = selectAPs(data)
+# plt.show()
+# print(len(sa))
+# print(st.AP_COUNT)
 

@@ -107,9 +107,9 @@ def selectLocs(srcData):
 
 
 # res = selectLocs(data)
-import dataload as ld
-data, apMap = ld.loadData()
-ls = selectLocs(data)
-print(len(ls))
-print(data.shape)
-plt.show()
+# import dataload as ld
+# data, apMap = ld.loadData()
+# ls = selectLocs(data)
+# print(len(ls))
+# print(data.shape)
+# plt.show()

@@ -15,10 +15,8 @@ import settings as st
 def convertSolution(aps, locs, devDiff):
     apParam = [[0] * 4 for i in range(len(aps))]
     locations = [[0] * 2 for i in range(len(locs))]
-
     for ap in aps:
         apParam[ap] = aps[ap]
-
     for lc in locs:
         locations[lc] = locs[lc]
 
@@ -274,13 +272,13 @@ def ERSGA(msrs, knownLoc, devdf):
             unknownLocSet.remove(loc)
 
     for ua in unknownApSet:
-        apParam[ua] = [random.randint(st.POWER_MIN, st.POWER_MAX), random.uniform(st.GAMMA_MIN, st.GAMMA_MAX), random.uniform(
+        apParam[ua] = [random.randint(st.POWER_MIN, st.POWER_MAX), random.uniform(st.GAMMA_MIN, st.GAMMA_MAX)/10, random.uniform(
             st.SPACE_RANGE[0], st.SPACE_RANGE[2]), random.uniform(st.SPACE_RANGE[3], st.SPACE_RANGE[1])]
 
     for ul in unknownLocSet:
         locations[ul] = [random.uniform(st.SPACE_RANGE[0], st.SPACE_RANGE[2]), random.uniform(
             st.SPACE_RANGE[3], st.SPACE_RANGE[1])]
-
+    # print(apParam)
     return convertSolution(apParam, locations, devdir)
 
 

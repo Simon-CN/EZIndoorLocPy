@@ -104,13 +104,12 @@ def GASolve(msrs, initSlu):
     for j in range(0, len(initSlu[2])):
         initSlu[2][j] = np.asarray(initSlu[2][j])
 
-
     st.MSR_COUNT, col = msrs.shape
     st.AP_COUNT = col - 9
     st.DEVICE_SET = set(list(msrs[:, -2].astype(int)))
 
     st.SPACE_RANGE = [min(msrs[:, -9] - st.POSITION_OFFSET), max(msrs[:, -8]) + st.POSITION_OFFSET,
-                    max(msrs[:, -9]) + st.POSITION_OFFSET, min(msrs[:, -8]) - st.POSITION_OFFSET]
+                      max(msrs[:, -9]) + st.POSITION_OFFSET, min(msrs[:, -8]) - st.POSITION_OFFSET]
 
     solutions = randomSolutions(st.SOLUTION_NUM)
 
@@ -120,11 +119,20 @@ def GASolve(msrs, initSlu):
 
     loop = 0
     optslu = []
+    finCount = 0
+    optFit = -1
     while (loop < st.GA_ROUND):
         loop += 1
         print("loop %d" % loop)
         calculateFitness(msrs, solutions)
         print("min fit = %f" % solutions[0][0])
+        if optFit == solutions[0][0]:
+            finCount += 1
+        else:
+            optFit = solutions[0][0]
+            finCount = 0
+        if finCount >= st.FIN_ROUND_THRESHOLD:
+            break
         optslu = solutions[0]
         newSolutions = randomSolutions(
             int(len(solutions) * (st.RANDOM_PERCENT/100)))
@@ -132,7 +140,6 @@ def GASolve(msrs, initSlu):
         GACross(solutions, newSolutions)
         GAPick(solutions, newSolutions)
         solutions = newSolutions
-
 
     for i in range(0, len(optslu[1])):
         optslu[1][i] = optslu[1][i].tolist()
@@ -144,7 +151,7 @@ def GASolve(msrs, initSlu):
     for dv in optslu[3].items():
         dl.append([int(dv[0]), dv[1]])
     optslu[3] = dl
-        
+
     return optslu
 
 # msrs = np.loadtxt(st.MIDFILE_DIR+"simpledata_%d_%d.txt" %

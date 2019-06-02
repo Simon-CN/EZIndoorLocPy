@@ -10,6 +10,9 @@ umdir = dir + 'unmarked'
 mdir = dir + 'marked'
 vmdir = dir + 'validation'
 
+speAPSet = {'28:2c:b2:3F:19:f4', '34:96:72:38:88:ac',
+            'ec:26:ca:f3:ee:9c', '14:e6:e4:44:d7:0c'}
+
 apSet = set()
 msrs = []
 vmsrs = []
@@ -28,9 +31,11 @@ for f in umfiles:
             if stp % 2 == 0:
                 continue
             for j in range(1, stp, 2):
-                tmp[line[j]] = int(line[j + 1])
-                apSet.add(line[j])
-            msrs.append([line[0], poi, tmp])
+                if line[j] in speAPSet:
+                    tmp[line[j]] = int(line[j + 1])
+                    apSet.add(line[j])
+            if len(tmp)>0:
+                msrs.append([line[0], poi, tmp])
 
 
 mfiles = os.listdir(mdir)
@@ -47,9 +52,11 @@ for f in mfiles:
             if stp % 2 == 0:
                 continue
             for j in range(1, stp, 2):
-                tmp[line[j]] = int(line[j + 1])
-                apSet.add(line[j])
-            msrs.append([line[0], poi, tmp])
+                if line[j] in speAPSet:
+                    tmp[line[j]] = int(line[j + 1])
+                    apSet.add(line[j])
+            if len(tmp)>0:
+                msrs.append([line[0], poi, tmp])
 
 vfiles = os.listdir(vmdir)
 for f in vfiles:
@@ -65,9 +72,11 @@ for f in vfiles:
             if stp % 2 == 0:
                 continue
             for j in range(1, stp, 2):
-                tmp[line[j]] = int(line[j + 1])
-                apSet.add(line[j])
-            vmsrs.append([line[0], poi, tmp])
+                if line[j] in speAPSet:
+                    tmp[line[j]] = int(line[j + 1])
+                    apSet.add(line[j])
+            if len(tmp)>0:
+                vmsrs.append([line[0], poi, tmp])
 
 
 apMap = {}

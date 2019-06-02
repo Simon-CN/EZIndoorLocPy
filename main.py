@@ -24,19 +24,19 @@ ut.saveNPtoFile(st.MIDFILE_DIR+"devicediff_%d_%d.txt" %
                 (st.BUILDINGID, st.FLOORID), devdiff)
 
 # Simplify Data
-selectedAP = aps.selectAPs(data)
-selectedLoc = locs.selectLocs(data)
-sData = data.values[selectedLoc, :][:, selectedAP]
-msrInfo = data.values[selectedLoc, -9:]
-mgData = np.hstack((sData, msrInfo))
-apMap = apMap[selectedAP]
-ut.saveNPtoFile(st.MIDFILE_DIR+"simpledata_%d_%d.txt" %
-                (st.BUILDINGID, st.FLOORID), mgData)
-ut.saveNPtoFile(st.MIDFILE_DIR+"filter_aps_%d_%d.txt" %
-                (st.BUILDINGID, st.FLOORID), apMap)
+# selectedAP = aps.selectAPs(data)
+# selectedLoc = locs.selectLocs(data)
+# sData = data.values[selectedLoc, :][:, selectedAP]
+# msrInfo = data.values[selectedLoc, -9:]
+# mgData = np.hstack((sData, msrInfo))
+# apMap = apMap[selectedAP]
+# ut.saveNPtoFile(st.MIDFILE_DIR+"simpledata_%d_%d.txt" %
+#                 (st.BUILDINGID, st.FLOORID), mgData)
+# ut.saveNPtoFile(st.MIDFILE_DIR+"filter_aps_%d_%d.txt" %
+#                 (st.BUILDINGID, st.FLOORID), apMap)
 
 # Solve LDPL
-# mgData = data
+mgData = data.values
 row, col = mgData.shape
 
 
